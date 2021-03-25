@@ -6,10 +6,26 @@
 
 #define INITIAL_CAPACITY 64
 
+#ifdef NDEBUG
+	#define CHECK(x) (x)
+#else
+	#define CHECK(x) _check(x)
+#endif
+
+static vector *
+_check(vector *v)
+{
+	assert(v);
+	assert(v->capacity > 0);
+	assert(v->length <= v->capacity);
+	assert(v->length < SIZE_MAX);
+	return v;
+}
+
 vector *
 v_new(void (*elt_dtor)(void *))
 {
-	vector *v = malloc(sizeof *v);
+	vector *v   = malloc(sizeof *v);
 	void **elts = malloc(INITIAL_CAPACITY * sizeof *elts);
 	if (!v || !elts)
 	{
@@ -22,7 +38,7 @@ v_new(void (*elt_dtor)(void *))
 		.elts = elts,
 		.elt_dtor = elt_dtor
 	};
-	return v;
+	return CHECK(v);
 }
 
 void
@@ -54,6 +70,8 @@ v_set_length(vector *v, size_t len)
 	for (size_t i = v->length; i < len; i++)
 		v->elts[i] = NULL;
 	v->length = len;
+
+	(void)CHECK(v);
 	return true;
 }
 
@@ -79,6 +97,8 @@ size_t v_reserve_capacity(vector *v, size_t desired)
 		return v->capacity;
 	v->elts = enlarged;
 	v->capacity = n;
+
+	(void)CHECK(v);
 	return n;
 }
 
