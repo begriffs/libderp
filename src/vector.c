@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define INITIAL_CAPACITY 64
 
@@ -90,10 +91,10 @@ v_reserve_capacity(vector *v, size_t desired)
 	if (desired <= v->capacity)
 		return v->capacity;
 	size_t n = v->capacity;
-	while (n < desired && n < SIZE_MAX/2)
+	while (n < desired && n <= SIZE_MAX/2)
 		n *= 2;
 	if (n < desired)
-		n = desired; /* desired >= SIZE_MAX/2 */
+		n = desired; /* > SIZE_MAX/2 */
 	void **enlarged = realloc(v->elts, n);
 	if (!enlarged)
 		return v->capacity;
@@ -159,6 +160,19 @@ v_remove_last(vector *v)
 }
 
 bool
+v_insert(vector *v, size_t i, void *elt)
+{
+	if (!v || !v_reserve_capacity(v, v->length+1))
+		return false;
+	memmove(v->elts+i+1, v->elts+i, (v->length - i) * sizeof *v->elts);
+	v->elts[i] = elt;
+	v->length++;
+
+	(void)CHECK(v);
+	return true;
+}
+
+bool
 v_swap(vector *v, size_t i, size_t j)
 {
 	if (!v || i >= v->length || j >= v->length)
@@ -190,7 +204,7 @@ v_find_index(const vector *v, const void *needle,
 }
 
 size_t
-v_find_index_last(const vector *v, const void *needle,
+v_find_last_index(const vector *v, const void *needle,
                   int (*cmp)(const void *, const void *))
 {
 	if (!v)
@@ -199,4 +213,15 @@ v_find_index_last(const vector *v, const void *needle,
 		if (cmp(v->elts[i], needle) == 0)
 			return i;
 	return SIZE_MAX;
+}
+
+bool
+v_sort(vector *v, int (*cmp)(const void *, const void *))
+{
+	if (!v)
+		return false;
+	qsort(v->elts, v->length, sizeof v->elts[0], cmp);
+
+	(void)CHECK(v);
+	return true;
 }
