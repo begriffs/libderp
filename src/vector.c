@@ -9,19 +9,18 @@
 #define INITIAL_CAPACITY 64
 
 #ifdef NDEBUG
-	#define CHECK(x) (x)
+	#define CHECK(x) (void)(x)
 #else
 	#define CHECK(x) _check(x)
 #endif
 
-static vector *
-_check(vector *v)
+static void
+_check(const vector *v)
 {
 	assert(v);
 	assert(v->capacity > 0);
 	assert(v->length <= v->capacity);
 	assert(v->length < SIZE_MAX);
-	return v;
 }
 
 vector *
@@ -40,7 +39,8 @@ v_new(void (*elt_dtor)(void *))
 		.elts = elts,
 		.elt_dtor = elt_dtor
 	};
-	return CHECK(v);
+	CHECK(v);
+	return v;
 }
 
 void
@@ -73,7 +73,7 @@ v_set_length(vector *v, size_t len)
 		v->elts[i] = NULL;
 	v->length = len;
 
-	(void)CHECK(v);
+	CHECK(v);
 	return true;
 }
 
@@ -101,7 +101,7 @@ v_reserve_capacity(vector *v, size_t desired)
 	v->elts = enlarged;
 	v->capacity = n;
 
-	(void)CHECK(v);
+	CHECK(v);
 	return n;
 }
 
@@ -168,7 +168,7 @@ v_insert(vector *v, size_t i, void *elt)
 	v->elts[i] = elt;
 	v->length++;
 
-	(void)CHECK(v);
+	CHECK(v);
 	return true;
 }
 
@@ -181,7 +181,7 @@ v_swap(vector *v, size_t i, size_t j)
 	v->elts[i] = v->elts[j];
 	v->elts[j] = t;
 
-	(void)CHECK(v);
+	CHECK(v);
 	return true;
 }
 
@@ -222,6 +222,6 @@ v_sort(vector *v, int (*cmp)(const void *, const void *))
 		return false;
 	qsort(v->elts, v->length, sizeof v->elts[0], cmp);
 
-	(void)CHECK(v);
+	CHECK(v);
 	return true;
 }
