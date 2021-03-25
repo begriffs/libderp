@@ -1,6 +1,7 @@
 #include "vector.h"
 
 #include <assert.h>
+#include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -81,15 +82,16 @@ v_capacity(const vector *v)
 	return v ? v->capacity : 0;
 }
 
-size_t v_reserve_capacity(vector *v, size_t desired)
+size_t
+v_reserve_capacity(vector *v, size_t desired)
 {
 	if (!v)
 		return 0;
 	if (desired <= v->capacity)
 		return v->capacity;
-	size_t n;
-	for (n = v->capacity; n < desired && n < SIZE_MAX/2; n *= 2)
-		;
+	size_t n = v->capacity;
+	while (n < desired && n < SIZE_MAX/2)
+		n *= 2;
 	if (n < desired)
 		n = desired; /* desired >= SIZE_MAX/2 */
 	void **enlarged = realloc(v->elts, n);
@@ -102,8 +104,99 @@ size_t v_reserve_capacity(vector *v, size_t desired)
 	return n;
 }
 
+bool
+v_is_empty(const vector *v)
+{
+	return v_length(v) == 0;
+}
+
+void *
+v_at(const vector *v, size_t i)
+{
+	if (!v || i >= v->length)
+	{
+		errno = EDOM;
+		return NULL;
+	}
+	return v->elts[i];
+}
+
+void *
+v_first(const vector *v)
+{
+	return v_at(v, 0);
+}
+
+void *
+v_last(const vector *v)
+{
+	/* when length is 0, length-1 is SIZE_MAX */
+	return v_at(v, v_length(v)-1);
+}
+
+bool
+v_append(vector *v, void *e)
+{
+	return v_insert(v, v_length(v), e);
+}
+
+bool
+v_prepend(vector *v, void *e)
+{
+	return v_insert(v, 0, e);
+}
+
+void *
+v_remove_first(vector *v)
+{
+	return v_remove(v, 0, 1);
+}
+
+void *
+v_remove_last(vector *v)
+{
+	return v_remove(v, v_length(v)-1, 1);
+}
+
+bool
+v_swap(vector *v, size_t i, size_t j)
+{
+	if (!v || i >= v->length || j >= v->length)
+		return false;
+	void *t = v->elts[i];
+	v->elts[i] = v->elts[j];
+	v->elts[j] = t;
+
+	(void)CHECK(v);
+	return true;
+}
+
 void
 v_clear(vector *v)
 {
-	assert(v_set_length(v, 0));
+	v_set_length(v, 0);
+}
+
+size_t
+v_find_index(const vector *v, const void *needle,
+             int (*cmp)(const void *, const void *))
+{
+	if (!v)
+		return SIZE_MAX;
+	for (size_t i = 0; i < v->length; i++)
+		if (cmp(v->elts[i], needle) == 0)
+			return i;
+	return SIZE_MAX;
+}
+
+size_t
+v_find_index_last(const vector *v, const void *needle,
+                  int (*cmp)(const void *, const void *))
+{
+	if (!v)
+		return SIZE_MAX;
+	for (size_t i = v->length-1; i < SIZE_MAX; i--)
+		if (cmp(v->elts[i], needle) == 0)
+			return i;
+	return SIZE_MAX;
 }

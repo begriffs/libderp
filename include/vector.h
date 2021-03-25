@@ -27,10 +27,10 @@ bool     v_prepend(vector *, void *);
 void *   v_remove_first(vector *);
 void *   v_remove_last(vector *);
 bool     v_insert(vector *, size_t, void *);
-bool     v_remove(vector *, size_t i, size_t len);
+void *   v_remove(vector *, size_t i, size_t len);
 bool     v_swap(vector *, size_t, size_t);
 void     v_clear(vector *);
-size_t   v_find_index(const vector *, void *,
+size_t   v_find_index(const vector *, const void *,
                       int (*)(const void *, const void *));
 size_t   v_find_last_index(const vector *, void *,
                            int (*)(const void *, const void *));
