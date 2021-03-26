@@ -250,7 +250,7 @@ size_t
 v_find_index(const vector *v, const void *needle,
              int (*cmp)(const void *, const void *))
 {
-	if (!v)
+	if (!v || !cmp)
 	{
 		errno = EDOM;
 		return SIZE_MAX;
@@ -265,7 +265,7 @@ size_t
 v_find_last_index(const vector *v, const void *needle,
                   int (*cmp)(const void *, const void *))
 {
-	if (!v)
+	if (!v || !cmp)
 	{
 		errno = EDOM;
 		return SIZE_MAX;
