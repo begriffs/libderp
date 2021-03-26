@@ -19,6 +19,11 @@ _check(const vector *v)
 {
 	assert(v);
 	assert(v->capacity > 0);
+	/* test that capacity is a power of two if not maxed out
+	 * https://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
+	 */
+	if (v->capacity < SIZE_MAX)
+		assert((v->capacity & (v->capacity - 1)) == 0);
 	assert(v->length <= v->capacity);
 	assert(v->length < SIZE_MAX);
 }
@@ -91,10 +96,12 @@ v_reserve_capacity(vector *v, size_t desired)
 	if (desired <= v->capacity)
 		return v->capacity;
 	size_t n = v->capacity;
-	while (n < desired && n <= SIZE_MAX/2)
+	/* SIZE_MAX is one less than a power of two, so if
+	 * we keep looping too long we'll hit zero */
+	while (0 < n && n < desired)
 		n *= 2;
-	if (n < desired)
-		n = desired; /* > SIZE_MAX/2 */
+	if (n == 0)
+		n = SIZE_MAX;
 	void **enlarged = realloc(v->elts, n);
 	if (!enlarged)
 		return v->capacity;
