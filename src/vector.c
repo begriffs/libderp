@@ -157,13 +157,29 @@ v_prepend(vector *v, void *e)
 void *
 v_remove_first(vector *v)
 {
-	return v_remove(v, 0, 1);
+	return v_remove(v, 0);
 }
 
 void *
 v_remove_last(vector *v)
 {
-	return v_remove(v, v_length(v)-1, 1);
+	return v_remove(v, v_length(v)-1);
+}
+
+void *
+v_remove(vector *v, size_t i)
+{
+	if (!v || i >= v->length)
+	{
+		errno = EDOM;
+		return NULL;
+	}
+	void *elt = v->elts[i];
+	memmove(v->elts+i, v->elts+i+1, (v->length - (i+1)) * sizeof *v->elts);
+	v->length--;
+
+	CHECK(v);
+	return elt;
 }
 
 bool
