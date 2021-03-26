@@ -52,7 +52,10 @@ void
 v_free(vector *v)
 {
 	if (!v)
+	{
+		errno = EDOM;
 		return;
+	}
 	v_clear(v);
 	free(v->elts);
 	free(v);
@@ -61,22 +64,30 @@ v_free(vector *v)
 size_t
 v_length(const vector *v)
 {
-	return v ? v->length : SIZE_MAX;
+	if (!v)
+	{
+		errno = EDOM;
+		return SIZE_MAX;
+	}
+	return v->length;
 }
 
 bool
-v_set_length(vector *v, size_t len)
+v_set_length(vector *v, size_t desired)
 {
-	if (!v || len == SIZE_MAX)
+	if (!v || desired == SIZE_MAX)
+	{
+		errno = EDOM;
 		return false;
+	}
 	if (v->elt_dtor) /* free any, if necessary */
-		for (size_t i = len; i < v->length; i++)
+		for (size_t i = desired; i < v->length; i++)
 			v->elt_dtor(v->elts[i]);
-	if (!v_reserve_capacity(v, len))
+	if (!v_reserve_capacity(v, desired))
 		return false;
-	for (size_t i = v->length; i < len; i++)
+	for (size_t i = v->length; i < desired; i++)
 		v->elts[i] = NULL;
-	v->length = len;
+	v->length = desired;
 
 	CHECK(v);
 	return true;
@@ -85,14 +96,22 @@ v_set_length(vector *v, size_t len)
 size_t
 v_capacity(const vector *v)
 {
-	return v ? v->capacity : 0;
+	if (!v)
+	{
+		errno = EDOM;
+		return 0;
+	}
+	return v->capacity;
 }
 
 size_t
 v_reserve_capacity(vector *v, size_t desired)
 {
 	if (!v)
+	{
+		errno = EDOM;
 		return 0;
+	}
 	if (desired <= v->capacity)
 		return v->capacity;
 	size_t n = v->capacity;
@@ -115,6 +134,11 @@ v_reserve_capacity(vector *v, size_t desired)
 bool
 v_is_empty(const vector *v)
 {
+	if (!v)
+	{
+		errno = EDOM;
+		return true;
+	}
 	return v_length(v) == 0;
 }
 
@@ -185,7 +209,12 @@ v_remove(vector *v, size_t i)
 bool
 v_insert(vector *v, size_t i, void *elt)
 {
-	if (!v || !v_reserve_capacity(v, v->length+1))
+	if (!v || i == SIZE_MAX)
+	{
+		errno = EDOM;
+		return false;
+	}
+	if (!v_reserve_capacity(v, v->length+1))
 		return false;
 	memmove(v->elts+i+1, v->elts+i, (v->length - i) * sizeof *v->elts);
 	v->elts[i] = elt;
@@ -199,7 +228,10 @@ bool
 v_swap(vector *v, size_t i, size_t j)
 {
 	if (!v || i >= v->length || j >= v->length)
+	{
+		errno = EDOM;
 		return false;
+	}
 	void *t = v->elts[i];
 	v->elts[i] = v->elts[j];
 	v->elts[j] = t;
@@ -219,7 +251,10 @@ v_find_index(const vector *v, const void *needle,
              int (*cmp)(const void *, const void *))
 {
 	if (!v)
+	{
+		errno = EDOM;
 		return SIZE_MAX;
+	}
 	for (size_t i = 0; i < v->length; i++)
 		if (cmp(v->elts[i], needle) == 0)
 			return i;
@@ -231,7 +266,10 @@ v_find_last_index(const vector *v, const void *needle,
                   int (*cmp)(const void *, const void *))
 {
 	if (!v)
+	{
+		errno = EDOM;
 		return SIZE_MAX;
+	}
 	for (size_t i = v->length-1; i < SIZE_MAX; i--)
 		if (cmp(v->elts[i], needle) == 0)
 			return i;
@@ -241,8 +279,11 @@ v_find_last_index(const vector *v, const void *needle,
 bool
 v_sort(vector *v, int (*cmp)(const void *, const void *))
 {
-	if (!v)
+	if (!v || !cmp)
+	{
+		errno = EDOM;
 		return false;
+	}
 	qsort(v->elts, v->length, sizeof v->elts[0], cmp);
 
 	CHECK(v);
