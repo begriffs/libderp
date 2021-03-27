@@ -7,8 +7,6 @@ CFLAGS = -Iinclude
 
 include build/$(VARIANT)/extra.mk
 
-all : lib test
-
 lib : build/$(VARIANT)/vector.o
 
 test : build/$(VARIANT)/test/t_vector
