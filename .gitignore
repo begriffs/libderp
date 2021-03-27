@@ -1,2 +1,3 @@
 *.o
 default.profraw
+build/**/test/t_*

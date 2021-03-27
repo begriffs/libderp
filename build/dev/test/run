@@ -1,0 +1,20 @@
+#!/bin/sh
+
+BASE=$(dirname "$0")
+CODE=0
+
+for t in "$BASE"/t_*
+do
+	if [ -f "$t" ]
+	then
+		if ./"$t"
+		then
+			echo "YES: $t"
+		else
+			echo "*** NO: $t"
+			CODE=1
+		fi
+	fi
+done
+
+exit $CODE
