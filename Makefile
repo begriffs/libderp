@@ -11,7 +11,7 @@ include build/$(VARIANT)/extra.mk
 
 lib : build/$(VARIANT)/vector.o
 
-test : build/$(VARIANT)/test/t_vector
+tests : build/$(VARIANT)/test/t_vector
 
 build/$(VARIANT)/vector.o : src/vector.c include/vector.h $(MAKEFILES)
 	$(CC) $(CFLAGS) -o $@ -c src/vector.c
