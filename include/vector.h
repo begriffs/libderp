@@ -1,5 +1,5 @@
-#ifndef LIBGRIFFS_VECTOR_H
-#define LIBGRIFFS_VECTOR_H
+#ifndef LIBDERP_VECTOR_H
+#define LIBDERP_VECTOR_H
 
 #include <stdbool.h>
 #include <stddef.h>
