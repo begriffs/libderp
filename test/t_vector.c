@@ -46,6 +46,23 @@ int main(void)
 	assert(v_find_index(vint, ivals2+5, cmpint) == SIZE_MAX);
 	assert(v_find_last_index(vint, ivals2+5, cmpint) == SIZE_MAX);
 
+	v_clear(vint);
+	int revme_even[] = {1,2};
+	for (i = 0; i < ARRAY_LEN(revme_even); i++)
+		v_append(vint, revme_even+i);
+	v_reverse(vint);
+	assert(*(int*)v_at(vint, 0) == 2);
+	assert(*(int*)v_at(vint, 1) == 1);
+
+	v_clear(vint);
+	int revme_odd[] = {1,2,3};
+	for (i = 0; i < ARRAY_LEN(revme_odd); i++)
+		v_append(vint, revme_odd+i);
+	v_reverse(vint);
+	assert(*(int*)v_at(vint, 0) == 3);
+	assert(*(int*)v_at(vint, 1) == 2);
+	assert(*(int*)v_at(vint, 2) == 1);
+
 	v_free(vint);
 
 	return 0;

@@ -289,3 +289,21 @@ v_sort(vector *v, int (*cmp)(const void *, const void *))
 	CHECK(v);
 	return true;
 }
+
+bool
+v_reverse(vector *v)
+{
+	size_t n = v_length(v);
+	if (n == SIZE_MAX)
+		return false;
+	if (n == 0)
+		return true;
+	for (size_t i = n-1; i >= n/2; i--)
+	{
+		void *t = v->elts[i];
+		v->elts[i] = v->elts[n-i-1];
+		v->elts[n-i-1] = t;
+	}
+	CHECK(v);
+	return true;
+}

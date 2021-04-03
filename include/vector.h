@@ -35,5 +35,6 @@ size_t   v_find_index(const vector *, const void *,
 size_t   v_find_last_index(const vector *, const void *,
                            int (*)(const void *, const void *));
 bool     v_sort(vector *, int (*)(const void *, const void *));
+bool     v_reverse(vector *);
 
 #endif
