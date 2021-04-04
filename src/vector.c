@@ -296,7 +296,7 @@ v_reverse(vector *v)
 	size_t n = v_length(v);
 	if (n == SIZE_MAX)
 		return false;
-	if (n == 0)
+	if (n < 2)
 		return true;
 	for (size_t i = n-1; i >= n/2; i--)
 	{
