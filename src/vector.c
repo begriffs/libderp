@@ -1,7 +1,6 @@
 #include "vector.h"
 
 #include <assert.h>
-#include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,7 +24,6 @@ _check(const vector *v)
 	if (v->capacity < SIZE_MAX)
 		assert((v->capacity & (v->capacity - 1)) == 0);
 	assert(v->length <= v->capacity);
-	assert(v->length < SIZE_MAX);
 }
 
 vector *
@@ -52,10 +50,7 @@ void
 v_free(vector *v)
 {
 	if (!v)
-	{
-		errno = EDOM;
 		return;
-	}
 	v_clear(v);
 	free(v->elts);
 	free(v);
@@ -64,22 +59,14 @@ v_free(vector *v)
 size_t
 v_length(const vector *v)
 {
-	if (!v)
-	{
-		errno = EDOM;
-		return SIZE_MAX;
-	}
-	return v->length;
+	return v ? v->length : 0;
 }
 
 bool
 v_set_length(vector *v, size_t desired)
 {
-	if (!v || desired == SIZE_MAX)
-	{
-		errno = EDOM;
+	if (!v)
 		return false;
-	}
 	if (v->elt_dtor) /* free any, if necessary */
 		for (size_t i = desired; i < v->length; i++)
 			v->elt_dtor(v->elts[i]);
@@ -96,22 +83,14 @@ v_set_length(vector *v, size_t desired)
 size_t
 v_capacity(const vector *v)
 {
-	if (!v)
-	{
-		errno = EDOM;
-		return 0;
-	}
-	return v->capacity;
+	return v ? v->capacity : 0;
 }
 
 size_t
 v_reserve_capacity(vector *v, size_t desired)
 {
 	if (!v)
-	{
-		errno = EDOM;
 		return 0;
-	}
 	if (desired <= v->capacity)
 		return v->capacity;
 	size_t n = v->capacity;
@@ -134,11 +113,6 @@ v_reserve_capacity(vector *v, size_t desired)
 bool
 v_is_empty(const vector *v)
 {
-	if (!v)
-	{
-		errno = EDOM;
-		return true;
-	}
 	return v_length(v) == 0;
 }
 
@@ -146,10 +120,7 @@ void *
 v_at(const vector *v, size_t i)
 {
 	if (!v || i >= v->length)
-	{
-		errno = EDOM;
 		return NULL;
-	}
 	return v->elts[i];
 }
 
@@ -162,7 +133,7 @@ v_first(const vector *v)
 void *
 v_last(const vector *v)
 {
-	/* when length is 0, length-1 is SIZE_MAX */
+	/* successfully fails when length is 0 */
 	return v_at(v, v_length(v)-1);
 }
 
@@ -194,10 +165,7 @@ void *
 v_remove(vector *v, size_t i)
 {
 	if (!v || i >= v->length)
-	{
-		errno = EDOM;
 		return NULL;
-	}
 	void *elt = v->elts[i];
 	memmove(v->elts+i, v->elts+i+1, (v->length - (i+1)) * sizeof *v->elts);
 	v->length--;
@@ -209,12 +177,7 @@ v_remove(vector *v, size_t i)
 bool
 v_insert(vector *v, size_t i, void *elt)
 {
-	if (!v || i == SIZE_MAX)
-	{
-		errno = EDOM;
-		return false;
-	}
-	if (!v_reserve_capacity(v, v->length+1))
+	if (!v || !v_reserve_capacity(v, v->length+1))
 		return false;
 	memmove(v->elts+i+1, v->elts+i, (v->length - i) * sizeof *v->elts);
 	v->elts[i] = elt;
@@ -228,10 +191,7 @@ bool
 v_swap(vector *v, size_t i, size_t j)
 {
 	if (!v || i >= v->length || j >= v->length)
-	{
-		errno = EDOM;
 		return false;
-	}
 	void *t = v->elts[i];
 	v->elts[i] = v->elts[j];
 	v->elts[j] = t;
@@ -251,10 +211,7 @@ v_find_index(const vector *v, const void *needle,
              int (*cmp)(const void *, const void *))
 {
 	if (!v || !cmp)
-	{
-		errno = EDOM;
 		return SIZE_MAX;
-	}
 	for (size_t i = 0; i < v->length; i++)
 		if (cmp(v->elts[i], needle) == 0)
 			return i;
@@ -266,10 +223,7 @@ v_find_last_index(const vector *v, const void *needle,
                   int (*cmp)(const void *, const void *))
 {
 	if (!v || !cmp)
-	{
-		errno = EDOM;
 		return SIZE_MAX;
-	}
 	for (size_t i = v->length-1; i < SIZE_MAX; i--)
 		if (cmp(v->elts[i], needle) == 0)
 			return i;
@@ -280,10 +234,7 @@ bool
 v_sort(vector *v, int (*cmp)(const void *, const void *))
 {
 	if (!v || !cmp)
-	{
-		errno = EDOM;
 		return false;
-	}
 	qsort(v->elts, v->length, sizeof v->elts[0], cmp);
 
 	CHECK(v);
@@ -294,8 +245,6 @@ bool
 v_reverse(vector *v)
 {
 	size_t n = v_length(v);
-	if (n == SIZE_MAX)
-		return false;
 	if (n < 2)
 		return true;
 	for (size_t i = n-1; i >= n/2; i--)
