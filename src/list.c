@@ -40,8 +40,6 @@ l_new(void (*elt_dtor)(void *))
 void
 l_free(list *l)
 {
-	if (!l)
-		return;
 	l_clear(l);
 	free(l);
 }
@@ -73,49 +71,47 @@ l_last(const list *l)
 bool
 l_append(list *l, void *data)
 {
-	if (!l)
-		return false;
-	return l_insert_after(l, l->tail, data);
+	return l_insert_after(l, l_last(l), data);
 }
 
 bool
 l_prepend(list *l, void *data)
 {
-	if (!l)
-		return false;
-	return l_insert(l, l->head, data);
+	return l_insert(l, l_first(l), data);
 }
 
 list_item *
 l_remove_first(list *l)
 {
-	if (!l)
-		return NULL;
-	list_item *old_head = l->head;
-	if (old_head)
-	{
-		l->head = old_head->next;
-		old_head->next = NULL;
-		l->head->prev = NULL;
-		l->length--;
-	}
-	return old_head;
+	list_item *old_head = l_first(l);
+	return l_remove(l, old_head) ? old_head : NULL;
 }
 
 list_item *
 l_remove_last(list *l)
 {
-	if (!l)
-		return NULL;
-	list_item *old_tail = l->tail;
-	if (old_tail)
-	{
-		l->tail = old_tail->prev;
-		old_tail->prev = NULL;
-		l->tail->next = NULL;
-		l->length--;
-	}
-	return old_tail;
+	list_item *old_tail = l_last(l);
+	return l_remove(l, old_tail) ? old_tail : NULL;
+}
+
+bool
+l_remove(list *l, list_item *li)
+{
+	if (!l || !li || l->length < 1)
+		return false;
+	list_item *p = li->prev, *n = li->next;
+	if (p)
+		p->next = n;
+	if (n)
+		n->prev = p;
+	if (li == l->head)
+		l->head = n;
+	if (li == l->tail)
+		l->tail = p;
+	l->length--;
+
+	CHECK(l);
+	return true;
 }
 
 bool
@@ -171,6 +167,27 @@ l_insert_after(list *l, list_item *pos, void *data)
 	else if (pos == l->tail)
 		l->tail = li;
 	l->length++;
+
+	CHECK(l);
+	return true;
+}
+
+bool
+l_clear(list *l)
+{
+	if (!l)
+		return false;
+	list_item *li = l_first(l);
+	while (li)
+	{
+		list_item *n = li->next;
+		if (l->elt_dtor)
+			l->elt_dtor(li->data);
+		free(li);
+		li = n;
+	}
+	l->head = l->tail = NULL;
+	l->length = 0;
 
 	CHECK(l);
 	return true;

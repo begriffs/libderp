@@ -24,9 +24,9 @@ bool        l_append(list *, void *);
 bool        l_prepend(list *, void *);
 list_item * l_remove_first(list *);
 list_item * l_remove_last(list *);
+bool        l_remove(list *, list_item *);
 bool        l_insert(list *, list_item *, void *);
 bool        l_insert_after(list *, list_item *, void *);
-bool        l_remove(list *, list_item *);
 bool        l_clear(list *);
 bool        l_splice(list *dst, list_item *dst_pos,
                      list *src, list_item *src_pos);
