@@ -16,15 +16,12 @@ struct list
 	size_t length;
 };
 
-static void
-_check(const list *l)
-{
-	assert(l);
-	assert( (!l->head && l->length == 0) ||
-	        ( l->head && l->length != 0) );
-	assert( (!l->head && !l->tail) ||
-	        ( l->head &&  l->tail) );
-}
+static void        _check(const list *l);
+static list_item * _merge(list_item *, list_item *,
+                          int (*)(const void*, const void*));
+static list_item * _bisect(list_item *);
+static list_item * _sort(list_item *,
+                         int (*)(const void*, const void*));
 
 list *
 l_new(void (*elt_dtor)(void *))
@@ -125,13 +122,16 @@ l_insert(list *l, list_item *pos, void *data)
 	if (!li)
 		return false;
 	*li = (list_item){
-		.prev = pos->prev,
+		.prev = pos ? pos->prev : NULL,
 		.next = pos,
 		.data = data
 	};
-	if (pos->prev)
-		pos->prev->next = li;
-	pos->prev = li;
+	if (pos)
+	{
+		if (pos->prev)
+			pos->prev->next = li;
+		pos->prev = li;
+	}
 
 	if (!l->head)
 		l->head = l->tail = li;
@@ -155,12 +155,15 @@ l_insert_after(list *l, list_item *pos, void *data)
 		return false;
 	*li = (list_item){
 		.prev = pos,
-		.next = pos->next,
+		.next = pos ? pos->next : NULL,
 		.data = data
 	};
-	if (pos->next)
-		pos->next->prev = li;
-	pos->next = li;
+	if (pos)
+	{
+		if (pos->next)
+			pos->next->prev = li;
+		pos->next = li;
+	}
 
 	if (!l->tail)
 		l->head = l->tail = li;
@@ -191,4 +194,97 @@ l_clear(list *l)
 
 	CHECK(l);
 	return true;
+}
+
+bool
+l_sort(list *l, int (*cmp)(const void*, const void*))
+{
+	if (!l || !cmp)
+		return false;
+	if (l_length(l) < 2)
+		return true;
+
+	l->head = _sort(l->head, cmp);
+	list_item *t = l->head;
+	while (t && t->next)
+		t = t->next;
+	l->tail = t;
+	CHECK(l);
+	return true;
+}
+
+
+/*** Internals ***/
+
+static void
+_check(const list *l)
+{
+	assert(l);
+	assert( (!l->head && l->length == 0) ||
+	        ( l->head && l->length != 0) );
+	assert( (!l->head && !l->tail) ||
+	        ( l->head &&  l->tail) );
+
+	list_item *li = l_first(l);
+	while (li && li->next)
+		li = li->next;
+	assert(li == l_last(l));
+
+	li = l_last(l);
+	while (li && li->prev)
+		li = li->prev;
+	assert(li == l_first(l));
+}
+
+static list_item *
+_merge(list_item *a, list_item *b,
+       int (*cmp)(const void*, const void*))
+{
+	if (!a)
+		return b;
+	if (!b)
+		return a;
+	list_item *ret, *n;
+	if (cmp(a->data, b->data) <= 0)
+	{
+		ret = a;
+		n = _merge(a->next, b, cmp);
+	}
+	else
+	{
+		ret = b;
+		n = _merge(a, b->next, cmp);
+	}
+	ret->next = n;
+	n->prev = ret;
+	return ret;
+}
+
+static list_item *
+_bisect(list_item *li)
+{
+	assert(li);
+	list_item *fast = li;
+	while (fast && fast->next)
+	{
+		li = li->next;
+		fast = fast->next->next;
+	}
+	if (li->prev) /* cut in twain */
+		li->prev = li->prev->next = NULL;
+	return li;
+}
+
+static list_item *
+_sort(list_item *l,
+      int (*cmp)(const void*, const void*))
+{
+	assert(l);
+	assert(cmp);
+	if (!l->next)
+		return l;
+	list_item *r = _bisect(l);
+	l = _sort(l, cmp);
+	r = _sort(r, cmp);
+	return _merge(l, r, cmp);
 }

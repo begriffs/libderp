@@ -28,8 +28,6 @@ bool        l_remove(list *, list_item *);
 bool        l_insert(list *, list_item *, void *);
 bool        l_insert_after(list *, list_item *, void *);
 bool        l_clear(list *);
-bool        l_splice(list *dst, list_item *dst_pos,
-                     list *src, list_item *src_pos);
 bool        l_sort(list *,
                    int (*)(const void *, const void *));
 
