@@ -4,13 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-typedef struct vector
-{
-	size_t length;
-	size_t capacity;
-	void **elts;
-	void (*elt_dtor)(void *);
-} vector;
+typedef struct vector vector;
 
 vector * v_new(void (*elt_dtor)(void *));
 void     v_free(vector *);

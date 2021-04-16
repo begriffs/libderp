@@ -13,6 +13,14 @@
 	#define CHECK(x) _check(x)
 #endif
 
+struct vector
+{
+	size_t length;
+	size_t capacity;
+	void **elts;
+	void (*elt_dtor)(void *);
+};
+
 static void
 _check(const vector *v)
 {
