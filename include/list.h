@@ -20,6 +20,10 @@ size_t      l_length(const list *);
 bool        l_is_empty(const list *);
 list_item * l_first(const list *);
 list_item * l_last(const list *);
+list_item * l_find(const list *, const void *,
+                   int (*)(const void *, const void *));
+list_item * l_find_last(const list *, const void *,
+                        int (*)(const void *, const void *));
 bool        l_append(list *, void *);
 bool        l_prepend(list *, void *);
 list_item * l_remove_first(list *);

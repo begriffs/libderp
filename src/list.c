@@ -65,6 +65,30 @@ l_last(const list *l)
 	return l ? l->tail : NULL;
 }
 
+list_item *
+l_find(const list *l, const void *needle,
+       int (*cmp)(const void *, const void *))
+{
+	if (!l || !cmp)
+		return NULL;
+	for (list_item *li = l_first(l); li; li = li->next)
+		if (cmp(li->data, needle) == 0)
+			return li;
+	return NULL;
+}
+
+list_item *
+l_find_last(const list *l, const void *needle,
+            int (*cmp)(const void *, const void *))
+{
+	if (!l || !cmp)
+		return NULL;
+	for (list_item *li = l_last(l); li; li = li->prev)
+		if (cmp(li->data, needle) == 0)
+			return li;
+	return NULL;
+}
+
 bool
 l_append(list *l, void *data)
 {

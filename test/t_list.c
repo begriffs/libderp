@@ -66,6 +66,11 @@ int main(void)
 	assert(*(int*)l_first(l)->next->next->next->data == 8);
 	assert(*(int*)l_first(l)->next->next->next->next->data == 9);
 
+	l_insert_after(l, l_first(l), ivals+4);
+	l_insert(l, l_last(l), ivals+4);
+	assert(l_find(l, ivals+4, cmpint) == l_first(l)->next);
+	assert(l_find_last(l, ivals+4, cmpint) == l_last(l)->prev);
+
 	l_clear(l);
 
 	for (i = 0; i < ARRAY_LEN(ivals); i++)
