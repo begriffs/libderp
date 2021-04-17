@@ -78,7 +78,7 @@ v_set_length(vector *v, size_t desired)
 	if (v->elt_dtor) /* free any, if necessary */
 		for (size_t i = desired; i < v->length; i++)
 			v->elt_dtor(v->elts[i]);
-	if (!v_reserve_capacity(v, desired))
+	if (v_reserve_capacity(v, desired) < desired)
 		return false;
 	for (size_t i = v->length; i < desired; i++)
 		v->elts[i] = NULL;
@@ -185,7 +185,7 @@ v_remove(vector *v, size_t i)
 bool
 v_insert(vector *v, size_t i, void *elt)
 {
-	if (!v || !v_reserve_capacity(v, v->length+1))
+	if (!v || v_reserve_capacity(v, v->length+1) < v->length+1)
 		return false;
 	memmove(v->elts+i+1, v->elts+i, (v->length - i) * sizeof *v->elts);
 	v->elts[i] = elt;
