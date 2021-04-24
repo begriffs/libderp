@@ -93,13 +93,20 @@ hm_is_empty(const hashmap *h)
 	return hm_length(h) == 0;
 }
 
+static int
+_hm_cmp(const void *a, const void *b, void *aux)
+{
+	hashmap *h = aux;
+	return h->cmp(((const struct pair *)a)->k, b, h->cmp_aux);
+}
+
 void *
 hm_at(const hashmap *h, const void *key)
 {
 	if (!h)
 		return NULL;
 	list *bucket = h->buckets[h->hash(key) % h->capacity];
-	list_item *li = l_find(bucket, key, h->cmp, h->cmp_aux);
+	list_item *li = l_find(bucket, key, _hm_cmp, (void*)h);
 	if (!li)
 		return NULL;
 	return ((struct pair*)li->data)->v;
@@ -111,7 +118,7 @@ hm_insert(hashmap *h, void *key, void *val)
 	if (!h)
 		return false;
 	list *bucket = h->buckets[h->hash(key) % h->capacity];
-	list_item *li = l_find(bucket, key, h->cmp, h->cmp_aux);
+	list_item *li = l_find(bucket, key, _hm_cmp, h);
 	if (li)
 	{
 		struct pair *p = (struct pair*)li->data;
@@ -137,7 +144,7 @@ hm_remove(hashmap *h, void *key)
 	if (!h)
 		return false;
 	list *bucket = h->buckets[h->hash(key) % h->capacity];
-	list_item *li = l_find(bucket, key, h->cmp, h->cmp_aux);
+	list_item *li = l_find(bucket, key, _hm_cmp, h);
 	if (!li)
 		return false;
 	l_remove(bucket, li);
