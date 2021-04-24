@@ -195,14 +195,14 @@ v_insert(vector *v, size_t i, void *elt)
 	return true;
 }
 
+#define SWAP(x, y) do { void *swaptmp = (x); (x) = (y); (y) = swaptmp; } while (0)
+
 bool
 v_swap(vector *v, size_t i, size_t j)
 {
 	if (!v || i >= v->length || j >= v->length)
 		return false;
-	void *t = v->elts[i];
-	v->elts[i] = v->elts[j];
-	v->elts[j] = t;
+	SWAP(v->elts[i], v->elts[j]);
 
 	CHECK(v);
 	return true;
@@ -238,34 +238,25 @@ v_find_last_index(const vector *v, const void *needle,
 	return SIZE_MAX;
 }
 
-static size_t
-_partition(vector *v, size_t lo, size_t hi,
-           comparator *cmp, void *aux)
-{
-	void *pivot = v->elts[hi], *t;
-	size_t i = lo;
-	for (size_t j = lo; j < hi; j++)
-		if (cmp(v->elts[j], pivot, aux) < 0)
-		{
-			t = v->elts[i];
-			v->elts[i] = v->elts[j];
-			v->elts[j] = t;
-			i++;
-		}
-	t = v->elts[i];
-	v->elts[i] = v->elts[hi];
-	v->elts[hi] = t;
-	return i;
-}
-
+/* from Bentley, https://www.youtube.com/watch?v=QvgYAQzg1z8 */
 static void
 _quicksort(vector *v, size_t lo, size_t hi,
            comparator *cmp, void *aux)
 {
-	assert(lo < hi);
-	size_t p = _partition(v, lo, hi, cmp, aux);
-	_quicksort(v, lo, p-1, cmp, aux);
-	_quicksort(v, p+1, hi, cmp, aux);
+	size_t i, m = lo;
+	if (lo >= hi)
+		return;
+	for (i = lo+1; i <= hi; i++)
+		if (cmp(v->elts[i], v->elts[lo], aux) < 0)
+		{
+			m++;
+			SWAP(v->elts[i], v->elts[m]);
+		}
+	SWAP(v->elts[lo], v->elts[m]);
+
+	if (m > 0) /* avoid wrapping size_t */
+		_quicksort(v, lo, m-1, cmp, aux);
+	_quicksort(v, m+1, hi, cmp, aux);
 }
 
 bool
