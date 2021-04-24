@@ -13,6 +13,8 @@
 	#define CHECK(x) _check(x)
 #endif
 
+#define SWAP(x, y) do { void *swaptmp = (x); (x) = (y); (y) = swaptmp; } while (0)
+
 struct vector
 {
 	size_t length;
@@ -194,8 +196,6 @@ v_insert(vector *v, size_t i, void *elt)
 	CHECK(v);
 	return true;
 }
-
-#define SWAP(x, y) do { void *swaptmp = (x); (x) = (y); (y) = swaptmp; } while (0)
 
 bool
 v_swap(vector *v, size_t i, size_t j)
