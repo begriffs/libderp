@@ -238,13 +238,42 @@ v_find_last_index(const vector *v, const void *needle,
 	return SIZE_MAX;
 }
 
+static size_t
+_partition(vector *v, size_t lo, size_t hi,
+           comparator *cmp, void *aux)
+{
+	void *pivot = v->elts[hi], *t;
+	size_t i = lo;
+	for (size_t j = lo; j < hi; j++)
+		if (cmp(v->elts[j], pivot, aux) < 0)
+		{
+			t = v->elts[i];
+			v->elts[i] = v->elts[j];
+			v->elts[j] = t;
+			i++;
+		}
+	t = v->elts[i];
+	v->elts[i] = v->elts[hi];
+	v->elts[hi] = t;
+	return i;
+}
+
+static void
+_quicksort(vector *v, size_t lo, size_t hi,
+           comparator *cmp, void *aux)
+{
+	assert(lo < hi);
+	size_t p = _partition(v, lo, hi, cmp, aux);
+	_quicksort(v, lo, p-1, cmp, aux);
+	_quicksort(v, p+1, hi, cmp, aux);
+}
+
 bool
 v_sort(vector *v, comparator *cmp, void *aux)
 {
 	if (!v || !cmp)
 		return false;
-	(void)aux; /* XXX: re-implement quicksort to pass aux to cmp */
-	// qsort(v->elts, v->length, sizeof v->elts[0], cmp);
+	_quicksort(v, 0, v->length-1, cmp, aux);
 
 	CHECK(v);
 	return true;
