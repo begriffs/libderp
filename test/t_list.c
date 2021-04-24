@@ -5,8 +5,9 @@
 
 #define ARRAY_LEN(a) (sizeof(a)/sizeof(*a))
 
-int cmpint(const void *a, const void *b)
+int cmpint(const void *a, const void *b, void *aux)
 {
+	(void)aux;
 	return *(int*)a - *(int*)b;
 }
 
@@ -52,14 +53,14 @@ int main(void)
 	assert(*(int*)l_first(l)->next->next->data == 8);
 	assert(*(int*)l_first(l)->next->next->next->data == 2);
 
-	l_sort(l, cmpint);
+	l_sort(l, cmpint, NULL);
 	assert(*(int*)l_first(l)->data == 0);
 	assert(*(int*)l_first(l)->next->data == 2);
 	assert(*(int*)l_first(l)->next->next->data == 7);
 	assert(*(int*)l_first(l)->next->next->next->data == 8);
 
 	l_insert_after(l, l_first(l)->next, ivals+9);
-	l_sort(l, cmpint);
+	l_sort(l, cmpint, NULL);
 	assert(*(int*)l_first(l)->data == 0);
 	assert(*(int*)l_first(l)->next->data == 2);
 	assert(*(int*)l_first(l)->next->next->data == 7);
@@ -68,8 +69,8 @@ int main(void)
 
 	l_insert_after(l, l_first(l), ivals+4);
 	l_insert(l, l_last(l), ivals+4);
-	assert(l_find(l, ivals+4, cmpint) == l_first(l)->next);
-	assert(l_find_last(l, ivals+4, cmpint) == l_last(l)->prev);
+	assert(l_find(l, ivals+4, cmpint, NULL) == l_first(l)->next);
+	assert(l_find_last(l, ivals+4, cmpint, NULL) == l_last(l)->prev);
 
 	l_clear(l);
 

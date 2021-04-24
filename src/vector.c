@@ -216,34 +216,35 @@ v_clear(vector *v)
 
 size_t
 v_find_index(const vector *v, const void *needle,
-             int (*cmp)(const void *, const void *))
+             comparator *cmp, void *aux)
 {
 	if (!v || !cmp)
 		return SIZE_MAX;
 	for (size_t i = 0; i < v->length; i++)
-		if (cmp(v->elts[i], needle) == 0)
+		if (cmp(v->elts[i], needle, aux) == 0)
 			return i;
 	return SIZE_MAX;
 }
 
 size_t
 v_find_last_index(const vector *v, const void *needle,
-                  int (*cmp)(const void *, const void *))
+                  comparator *cmp, void *aux)
 {
 	if (!v || !cmp)
 		return SIZE_MAX;
 	for (size_t i = v->length-1; i < SIZE_MAX; i--)
-		if (cmp(v->elts[i], needle) == 0)
+		if (cmp(v->elts[i], needle, aux) == 0)
 			return i;
 	return SIZE_MAX;
 }
 
 bool
-v_sort(vector *v, int (*cmp)(const void *, const void *))
+v_sort(vector *v, comparator *cmp, void *aux)
 {
 	if (!v || !cmp)
 		return false;
-	qsort(v->elts, v->length, sizeof v->elts[0], cmp);
+	(void)aux; /* XXX: re-implement quicksort to pass aux to cmp */
+	// qsort(v->elts, v->length, sizeof v->elts[0], cmp);
 
 	CHECK(v);
 	return true;

@@ -5,8 +5,9 @@
 
 #define ARRAY_LEN(a) (sizeof(a)/sizeof(*a))
 
-int cmpint(const void *a, const void *b)
+int cmpint(const void *a, const void *b, void *aux)
 {
+	(void)aux;
 	return *(int*)a - *(int*)b;
 }
 
@@ -25,7 +26,7 @@ int main(void)
 	assert(*(int*)v_first(vint) == 9);
 	assert(*(int*)v_remove_first(vint) == 9);
 	assert(*(int*)v_remove_first(vint) == 8);
-	v_sort(vint, cmpint);
+	v_sort(vint, cmpint, NULL);
 	assert(*(int*)v_first(vint) == 0);
 
 	v_clear(vint);
@@ -37,14 +38,14 @@ int main(void)
 	assert(*(int*)v_remove_last(vint) == 9);
 	assert(*(int*)v_remove_last(vint) == 8);
 
-	assert(v_find_index(vint, ivals+5, cmpint) == 5);
+	assert(v_find_index(vint, ivals+5, cmpint, NULL) == 5);
 	v_insert(vint, 5, ivals2+5);
-	assert(v_find_index(vint, ivals2+5, cmpint) == 5);
+	assert(v_find_index(vint, ivals2+5, cmpint, NULL) == 5);
 	v_swap(vint, 5, 6);
-	assert(v_find_index(vint, ivals2+5, cmpint) == 6);
+	assert(v_find_index(vint, ivals2+5, cmpint, NULL) == 6);
 	v_remove(vint, 6);
-	assert(v_find_index(vint, ivals2+5, cmpint) == SIZE_MAX);
-	assert(v_find_last_index(vint, ivals2+5, cmpint) == SIZE_MAX);
+	assert(v_find_index(vint, ivals2+5, cmpint, NULL) == SIZE_MAX);
+	assert(v_find_last_index(vint, ivals2+5, cmpint, NULL) == SIZE_MAX);
 
 	v_clear(vint);
 	int revme_even[] = {1,2};

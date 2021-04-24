@@ -19,14 +19,14 @@ struct hashmap
 
 	void (*key_dtor)(void *);
 	void (*val_dtor)(void *);
-	uint_fast32_t (*hash)(const void *);
-	int (*cmp)(const void *, const void *);
+	hashfn *hash;
+	comparator *cmp;
+	void *cmp_aux;
 };
 
 hashmap *
-hm_new(size_t capacity,
-       uint_fast32_t (*hash)(const void *),
-       int (*cmp)(const void *, const void *),
+hm_new(size_t capacity, hashfn *hash,
+       comparator *cmp, void *aux,
        void (*key_dtor)(void *),
        void (*val_dtor)(void *))
 {
@@ -43,7 +43,8 @@ hm_new(size_t capacity,
 		.key_dtor = key_dtor,
 		.val_dtor = val_dtor,
 		.hash = hash,
-		.cmp = cmp
+		.cmp = cmp,
+		.cmp_aux = aux
 	};
 	if (!h->buckets)
 		goto fail;
@@ -98,7 +99,7 @@ hm_at(const hashmap *h, const void *key)
 	if (!h)
 		return NULL;
 	list *bucket = h->buckets[h->hash(key) % h->capacity];
-	list_item *li = l_find(bucket, key, h->cmp);
+	list_item *li = l_find(bucket, key, h->cmp, h->cmp_aux);
 	if (!li)
 		return NULL;
 	return ((struct pair*)li->data)->v;
@@ -110,7 +111,7 @@ hm_insert(hashmap *h, void *key, void *val)
 	if (!h)
 		return false;
 	list *bucket = h->buckets[h->hash(key) % h->capacity];
-	list_item *li = l_find(bucket, key, h->cmp);
+	list_item *li = l_find(bucket, key, h->cmp, h->cmp_aux);
 	if (li)
 	{
 		struct pair *p = (struct pair*)li->data;
@@ -136,7 +137,7 @@ hm_remove(hashmap *h, void *key)
 	if (!h)
 		return false;
 	list *bucket = h->buckets[h->hash(key) % h->capacity];
-	list_item *li = l_find(bucket, key, h->cmp);
+	list_item *li = l_find(bucket, key, h->cmp, h->cmp_aux);
 	if (!li)
 		return false;
 	l_remove(bucket, li);

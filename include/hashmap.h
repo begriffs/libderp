@@ -1,15 +1,16 @@
 #ifndef LIBDERP_HASHMAP_H
 #define LIBDERP_HASHMAP_H
 
+#include "common.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
 typedef struct hashmap hashmap;
 
-hashmap * hm_new(size_t,
-                 uint_fast32_t (*hash)(const void *),
-                 int (*cmp)(const void *, const void *),
+hashmap * hm_new(size_t, hashfn *,
+                 comparator *, void *,
                  void (*key_dtor)(void *),
                  void (*val_dtor)(void *));
 void      hm_free(hashmap *);

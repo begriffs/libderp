@@ -1,6 +1,8 @@
 #ifndef LIBDERP_VECTOR_H
 #define LIBDERP_VECTOR_H
 
+#include "common.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -25,10 +27,10 @@ void *   v_remove(vector *, size_t);
 bool     v_swap(vector *, size_t, size_t);
 void     v_clear(vector *);
 size_t   v_find_index(const vector *, const void *,
-                      int (*)(const void *, const void *));
+                      comparator *, void *aux);
 size_t   v_find_last_index(const vector *, const void *,
-                           int (*)(const void *, const void *));
-bool     v_sort(vector *, int (*)(const void *, const void *));
+                           comparator *, void *aux);
+bool     v_sort(vector *, comparator *, void *aux);
 bool     v_reverse(vector *);
 
 #endif

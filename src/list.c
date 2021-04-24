@@ -18,10 +18,10 @@ struct list
 
 static void        _check(const list *l);
 static list_item * _merge(list_item *, list_item *,
-                          int (*)(const void*, const void*));
+                          comparator *, void *);
 static list_item * _bisect(list_item *);
 static list_item * _sort(list_item *,
-                         int (*)(const void*, const void*));
+                         comparator *, void *);
 
 list *
 l_new(void (*elt_dtor)(void *))
@@ -67,24 +67,24 @@ l_last(const list *l)
 
 list_item *
 l_find(const list *l, const void *needle,
-       int (*cmp)(const void *, const void *))
+       comparator *cmp, void *aux)
 {
 	if (!l || !cmp)
 		return NULL;
 	for (list_item *li = l_first(l); li; li = li->next)
-		if (cmp(li->data, needle) == 0)
+		if (cmp(li->data, needle, aux) == 0)
 			return li;
 	return NULL;
 }
 
 list_item *
 l_find_last(const list *l, const void *needle,
-            int (*cmp)(const void *, const void *))
+            comparator *cmp, void *aux)
 {
 	if (!l || !cmp)
 		return NULL;
 	for (list_item *li = l_last(l); li; li = li->prev)
-		if (cmp(li->data, needle) == 0)
+		if (cmp(li->data, needle, aux) == 0)
 			return li;
 	return NULL;
 }
@@ -221,14 +221,14 @@ l_clear(list *l)
 }
 
 bool
-l_sort(list *l, int (*cmp)(const void*, const void*))
+l_sort(list *l, comparator *cmp, void *aux)
 {
 	if (!l || !cmp)
 		return false;
 	if (l_length(l) < 2)
 		return true;
 
-	l->head = _sort(l->head, cmp);
+	l->head = _sort(l->head, cmp, aux);
 	list_item *t = l->head;
 	while (t && t->next)
 		t = t->next;
@@ -262,22 +262,22 @@ _check(const list *l)
 
 static list_item *
 _merge(list_item *a, list_item *b,
-       int (*cmp)(const void*, const void*))
+       comparator *cmp, void *aux)
 {
 	if (!a)
 		return b;
 	if (!b)
 		return a;
 	list_item *ret, *n;
-	if (cmp(a->data, b->data) <= 0)
+	if (cmp(a->data, b->data, aux) <= 0)
 	{
 		ret = a;
-		n = _merge(a->next, b, cmp);
+		n = _merge(a->next, b, cmp, aux);
 	}
 	else
 	{
 		ret = b;
-		n = _merge(a, b->next, cmp);
+		n = _merge(a, b->next, cmp, aux);
 	}
 	ret->next = n;
 	n->prev = ret;
@@ -300,15 +300,14 @@ _bisect(list_item *li)
 }
 
 static list_item *
-_sort(list_item *l,
-      int (*cmp)(const void*, const void*))
+_sort(list_item *l, comparator *cmp, void *aux)
 {
 	assert(l);
 	assert(cmp);
 	if (!l->next)
 		return l;
 	list_item *r = _bisect(l);
-	l = _sort(l, cmp);
-	r = _sort(r, cmp);
-	return _merge(l, r, cmp);
+	l = _sort(l, cmp, aux);
+	r = _sort(r, cmp, aux);
+	return _merge(l, r, cmp, aux);
 }
