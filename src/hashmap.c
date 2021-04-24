@@ -93,11 +93,13 @@ hm_is_empty(const hashmap *h)
 	return hm_length(h) == 0;
 }
 
+/* kinda weird assumption: p is struct pair*, k is type of p->k */
 static int
-_hm_cmp(const void *a, const void *b, void *aux)
+_hm_cmp(const void *p, const void *k, void *aux)
 {
+	assert(p); assert(k); assert(aux);
 	hashmap *h = aux;
-	return h->cmp(((const struct pair *)a)->k, b, h->cmp_aux);
+	return h->cmp(((const struct pair *)p)->k, k, h->cmp_aux);
 }
 
 void *

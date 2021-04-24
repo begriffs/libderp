@@ -36,6 +36,20 @@ int main(void)
 	assert(hm_at(h, "zero"));
 	assert(*(int*)hm_at(h, "zero") == 0);
 
+	hm_insert(h, "one", ivals+1);
+	assert(hm_length(h) == 2);
+	assert(hm_at(h, "one"));
+	assert(*(int*)hm_at(h, "zero") == 0);
+	assert(*(int*)hm_at(h, "one") == 1);
+	assert(!hm_at(h, "flurgle"));
+
+	hm_remove(h, "one");
+	assert(!hm_at(h, "one"));
+
+	hm_clear(h);
+	assert(hm_length(h) == 0);
+	assert(!hm_at(h, "zero"));
+
 	hm_free(h);
 
 	return 0;
