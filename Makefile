@@ -13,13 +13,13 @@ lib : build/$(VARIANT)/vector.o build/$(VARIANT)/list.o build/$(VARIANT)/hashmap
 
 tests : build/$(VARIANT)/test/t_vector build/$(VARIANT)/test/t_list build/$(VARIANT)/test/t_hashmap
 
-build/$(VARIANT)/vector.o : src/vector.c include/vector.h $(MAKEFILES)
+build/$(VARIANT)/vector.o : src/vector.c include/vector.h include/common.h $(MAKEFILES)
 	$(CC) $(CFLAGS) -o $@ -c src/vector.c
 
-build/$(VARIANT)/list.o : src/list.c include/list.h $(MAKEFILES)
+build/$(VARIANT)/list.o : src/list.c include/list.h include/common.h $(MAKEFILES)
 	$(CC) $(CFLAGS) -o $@ -c src/list.c
 
-build/$(VARIANT)/hashmap.o : src/hashmap.c include/hashmap.h include/list.h $(MAKEFILES)
+build/$(VARIANT)/hashmap.o : src/hashmap.c include/hashmap.h include/list.h include/common.h $(MAKEFILES)
 	$(CC) $(CFLAGS) -o $@ -c src/hashmap.c
 
 build/$(VARIANT)/test/t_vector : build/$(VARIANT)/vector.o test/t_vector.c
