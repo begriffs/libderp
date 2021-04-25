@@ -1,7 +1,8 @@
 #include "vector.h"
+
 #include <assert.h>
+#include <stdint.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 #define ARRAY_LEN(a) (sizeof(a)/sizeof(*a))
 
