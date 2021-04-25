@@ -286,11 +286,7 @@ v_reverse(vector *v)
 	if (n < 2)
 		return true;
 	for (size_t i = n-1; i >= n/2; i--)
-	{
-		void *t = v->elts[i];
-		v->elts[i] = v->elts[n-i-1];
-		v->elts[n-i-1] = t;
-	}
+		SWAP(v->elts[i], v->elts[n-i-1]);
 	CHECK(v);
 	return true;
 }

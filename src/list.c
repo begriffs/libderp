@@ -35,7 +35,8 @@ l_new(void)
 	return l;
 }
 
-void l_dtor(list *l, dtor *elt_dtor, void *dtor_aux)
+void
+l_dtor(list *l, dtor *elt_dtor, void *dtor_aux)
 {
 	if (!l)
 		return;
