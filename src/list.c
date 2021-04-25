@@ -264,6 +264,10 @@ _check(const list *l)
 	assert( (!l->head && !l->tail) ||
 	        ( l->head &&  l->tail) );
 
+	/* for extra assurance, could test that the list
+	 * is connected front to back and back to front.
+	 *
+	 * Probably adds a good bit of overhead.
 	list_item *li = l_first(l);
 	while (li && li->next)
 		li = li->next;
@@ -273,6 +277,7 @@ _check(const list *l)
 	while (li && li->prev)
 		li = li->prev;
 	assert(li == l_first(l));
+	*/
 }
 
 static list_item *
