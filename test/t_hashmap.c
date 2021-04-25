@@ -9,7 +9,7 @@ int ivals[] = {0,1,2,3,4,5,6,7,8,9};
 unsigned long djb2hash(const void *x)
 {
 	const char *str = x;
-	uint_fast32_t hash = 5381;
+	unsigned long hash = 5381;
 	int c;
 
 	if (str)
