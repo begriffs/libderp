@@ -17,18 +17,29 @@ struct hashmap
 	size_t capacity;
 	list **buckets;
 
-	void (*key_dtor)(void *);
-	void (*val_dtor)(void *);
+	dtor *key_dtor;
+	dtor *val_dtor;
 	hashfn *hash;
 	comparator *cmp;
 	void *cmp_aux;
+	void *dtor_aux;
 };
+
+static void
+_hm_free_pair(void *x, void *aux)
+{
+	hashmap *h = aux;
+	struct pair *p = x;
+	if (h->key_dtor)
+		h->key_dtor(p->k, h->dtor_aux);
+	if (h->val_dtor)
+		h->val_dtor(p->v, h->dtor_aux);
+	free(x);
+}
 
 hashmap *
 hm_new(size_t capacity, hashfn *hash,
-       comparator *cmp, void *aux,
-       void (*key_dtor)(void *),
-       void (*val_dtor)(void *))
+       comparator *cmp, void *cmp_aux)
 {
 	if (!hash || !cmp)
 		return NULL;
@@ -40,11 +51,9 @@ hm_new(size_t capacity, hashfn *hash,
 	*h = (hashmap){
 		.capacity = capacity,
 		.buckets = malloc(capacity * sizeof *h->buckets),
-		.key_dtor = key_dtor,
-		.val_dtor = val_dtor,
 		.hash = hash,
 		.cmp = cmp,
-		.cmp_aux = aux
+		.cmp_aux = cmp_aux
 	};
 	if (!h->buckets)
 		goto fail;
@@ -53,13 +62,27 @@ hm_new(size_t capacity, hashfn *hash,
 	for (i = 0; i < capacity; i++)
 		h->buckets[i] = NULL; /* in case allocation fails part-way */
 	for (i = 0; i < capacity; i++)
-		if (!(h->buckets[i] = l_new(NULL))) /* XXX: proper dtor */
+	{
+		if (!(h->buckets[i] = l_new()))
 			goto fail;
+		l_dtor(h->buckets[i], _hm_free_pair, h);
+	}
 	return h;
 
 fail:
 	hm_free(h);
 	return NULL;
+}
+
+
+void
+hm_dtor(hashmap *h, dtor *key_dtor, dtor *val_dtor, void *dtor_aux)
+{
+	if (!h)
+		return;
+	h->key_dtor = key_dtor;
+	h->val_dtor = val_dtor;
+	h->dtor_aux = dtor_aux;
 }
 
 void
@@ -125,7 +148,7 @@ hm_insert(hashmap *h, void *key, void *val)
 	{
 		struct pair *p = (struct pair*)li->data;
 		if (p->v != val && h->val_dtor)
-			h->val_dtor(p->v);
+			h->val_dtor(p->v, h->dtor_aux);
 		p->v = val;
 		return true;
 	}
@@ -149,8 +172,8 @@ hm_remove(hashmap *h, void *key)
 	list_item *li = l_find(bucket, key, _hm_cmp, h);
 	if (!li)
 		return false;
+	_hm_free_pair(li->data, h);
 	l_remove(bucket, li);
-	/* XXX: free li and pair */
 	return true;
 }
 

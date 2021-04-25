@@ -15,7 +15,7 @@ int ivals[] = {0,1,2,3,4,5,6,7,8,9};
 
 int main(void)
 {
-	list *l = l_new(NULL);
+	list *l = l_new();
 
 	assert(l_length(l) == 0);
 	assert(l_is_empty(l));
@@ -28,7 +28,6 @@ int main(void)
 	l_append(l, &ivals[0]);
 	assert(l_length(l) == 1);
 	l_remove_first(l);
-	l_remove_first(l); /* redundant */
 	assert(l_is_empty(l));
 
 	size_t i;
@@ -78,8 +77,8 @@ int main(void)
 		l_append(l, ivals+i);
 	assert(l_length(l) == ARRAY_LEN(ivals));
 	assert(*(int*)l_last(l)->data == 9);
-	assert(*(int*)l_remove_last(l)->data == 9);
-	assert(*(int*)l_remove_last(l)->data == 8);
+	assert(*(int*)l_remove_last(l) == 9);
+	assert(*(int*)l_remove_last(l) == 8);
 
 	l_free(l);
 

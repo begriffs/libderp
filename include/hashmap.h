@@ -9,11 +9,9 @@
 
 typedef struct hashmap hashmap;
 
-hashmap * hm_new(size_t, hashfn *,
-                 comparator *, void *,
-                 void (*key_dtor)(void *),
-                 void (*val_dtor)(void *));
+hashmap * hm_new(size_t, hashfn *, comparator *, void *cmp_aux);
 void      hm_free(hashmap *);
+void      hm_dtor(hashmap *, dtor *key_dtor, dtor *val_dtor, void *aux);
 size_t    hm_length(const hashmap *);
 bool      hm_is_empty(const hashmap *);
 void *    hm_at(const hashmap *, const void *);

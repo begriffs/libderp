@@ -12,7 +12,8 @@
 struct list
 {
 	list_item *head, *tail;
-	void (*elt_dtor)(void *);
+	dtor *elt_dtor;
+	void *dtor_aux;
 	size_t length;
 };
 
@@ -24,14 +25,22 @@ static list_item * _sort(list_item *,
                          comparator *, void *);
 
 list *
-l_new(void (*elt_dtor)(void *))
+l_new(void)
 {
 	list *l = malloc(sizeof *l);
 	if (!l)
 		return NULL;
-	*l = (list){.elt_dtor = elt_dtor};
+	*l = (list){0};
 	CHECK(l);
 	return l;
+}
+
+void l_dtor(list *l, dtor *elt_dtor, void *dtor_aux)
+{
+	if (!l)
+		return;
+	l->elt_dtor = elt_dtor;
+	l->dtor_aux = dtor_aux;
 }
 
 void
@@ -101,18 +110,22 @@ l_prepend(list *l, void *data)
 	return l_insert(l, l_first(l), data);
 }
 
-list_item *
+void *
 l_remove_first(list *l)
 {
 	list_item *old_head = l_first(l);
-	return l_remove(l, old_head) ? old_head : NULL;
+	void *data = old_head ? old_head->data : NULL;
+	l_remove(l, old_head);
+	return data;
 }
 
-list_item *
+void *
 l_remove_last(list *l)
 {
 	list_item *old_tail = l_last(l);
-	return l_remove(l, old_tail) ? old_tail : NULL;
+	void *data = old_tail ? old_tail->data : NULL;
+	l_remove(l, old_tail);
+	return data;
 }
 
 bool
@@ -130,6 +143,7 @@ l_remove(list *l, list_item *li)
 	if (li == l->tail)
 		l->tail = p;
 	l->length--;
+	free(li);
 
 	CHECK(l);
 	return true;
@@ -209,7 +223,7 @@ l_clear(list *l)
 	{
 		list_item *n = li->next;
 		if (l->elt_dtor)
-			l->elt_dtor(li->data);
+			l->elt_dtor(li->data, l->dtor_aux);
 		free(li);
 		li = n;
 	}

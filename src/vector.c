@@ -20,7 +20,8 @@ struct vector
 	size_t length;
 	size_t capacity;
 	void **elts;
-	void (*elt_dtor)(void *);
+	dtor *elt_dtor;
+	void *dtor_aux;
 };
 
 static void
@@ -37,7 +38,7 @@ _check(const vector *v)
 }
 
 vector *
-v_new(void (*elt_dtor)(void *))
+v_new(void)
 {
 	vector *v   = malloc(sizeof *v);
 	void **elts = malloc(INITIAL_CAPACITY * sizeof *elts);
@@ -49,11 +50,19 @@ v_new(void (*elt_dtor)(void *))
 	}
 	*v = (vector){
 		.capacity = INITIAL_CAPACITY,
-		.elts = elts,
-		.elt_dtor = elt_dtor
+		.elts = elts
 	};
 	CHECK(v);
 	return v;
+}
+
+void
+v_dtor(vector *v, dtor *elt_dtor, void *dtor_aux)
+{
+	if (!v)
+		return;
+	v->elt_dtor = elt_dtor;
+	v->dtor_aux = dtor_aux;
 }
 
 void
@@ -79,7 +88,7 @@ v_set_length(vector *v, size_t desired)
 		return false;
 	if (v->elt_dtor) /* free any, if necessary */
 		for (size_t i = desired; i < v->length; i++)
-			v->elt_dtor(v->elts[i]);
+			v->elt_dtor(v->elts[i], v->dtor_aux);
 	if (v_reserve_capacity(v, desired) < desired)
 		return false;
 	for (size_t i = v->length; i < desired; i++)

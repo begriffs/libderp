@@ -8,8 +8,9 @@
 
 typedef struct vector vector;
 
-vector * v_new(void (*elt_dtor)(void *));
+vector * v_new(void);
 void     v_free(vector *);
+void     v_dtor(vector *, dtor *, void *);
 size_t   v_length(const vector *);
 bool     v_set_length(vector *, size_t);
 size_t   v_capacity(const vector *);

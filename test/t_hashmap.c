@@ -26,19 +26,17 @@ int scmp(const void *a, const void *b, void *aux)
 
 int main(void)
 {
-	hashmap *h = hm_new(0, djb2hash, scmp, NULL, NULL, NULL);
+	hashmap *h = hm_new(0, djb2hash, scmp, NULL);
 	assert(hm_length(h) == 0);
 	assert(hm_is_empty(h));
 
 	assert(!hm_at(h, "zero"));
 	hm_insert(h, "zero", ivals);
 	assert(hm_length(h) == 1);
-	assert(hm_at(h, "zero"));
 	assert(*(int*)hm_at(h, "zero") == 0);
 
 	hm_insert(h, "one", ivals+1);
 	assert(hm_length(h) == 2);
-	assert(hm_at(h, "one"));
 	assert(*(int*)hm_at(h, "zero") == 0);
 	assert(*(int*)hm_at(h, "one") == 1);
 	assert(!hm_at(h, "flurgle"));
