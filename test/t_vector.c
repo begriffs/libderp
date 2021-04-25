@@ -11,6 +11,12 @@ int cmpint(const void *a, const void *b, void *aux)
 	return *(int*)a - *(int*)b;
 }
 
+void myfree(void *a, void *aux)
+{
+	(void)aux;
+	free(a);
+}
+
 int main(void)
 {
 	int ivals[] =  {0,1,2,3,4,5,6,7,8,9},
@@ -63,6 +69,13 @@ int main(void)
 	assert(*(int*)v_at(vint, 0) == 3);
 	assert(*(int*)v_at(vint, 1) == 2);
 	assert(*(int*)v_at(vint, 2) == 1);
+
+	v_clear(vint);
+	/* test for memory leak */
+	v_dtor(vint, myfree, NULL);
+	int *life = malloc(sizeof *life);
+	*life = 42;
+	v_append(vint, life);
 
 	v_free(vint);
 

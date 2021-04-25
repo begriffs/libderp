@@ -24,6 +24,12 @@ int scmp(const void *a, const void *b, void *aux)
 	return strcmp(a, b);
 }
 
+void myfree(void *a, void *aux)
+{
+	(void)aux;
+	free(a);
+}
+
 int main(void)
 {
 	hashmap *h = hm_new(0, djb2hash, scmp, NULL);
@@ -47,6 +53,12 @@ int main(void)
 	hm_clear(h);
 	assert(hm_length(h) == 0);
 	assert(!hm_at(h, "zero"));
+
+	/* test for memory leak */
+	hm_dtor(h, NULL, myfree, NULL);
+	int *life = malloc(sizeof *life);
+	*life = 42;
+	hm_insert(h, "life", life);
 
 	hm_free(h);
 
