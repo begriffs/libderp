@@ -1,3 +1,4 @@
 *.o
-default.profraw
+*.gcda
+*.gcno
 build/**/test/t_*
