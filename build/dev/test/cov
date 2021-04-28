@@ -1,0 +1,5 @@
+#!/bin/sh
+
+find build/dev -name '*.gcda' -exec rm {} +
+./build/dev/test/t_$1
+llvm-cov gcov build/dev/$1

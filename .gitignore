@@ -1,4 +1,5 @@
 *.o
 *.gcda
 *.gcno
+*.gcov
 build/**/test/t_*

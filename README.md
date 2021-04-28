@@ -53,3 +53,9 @@ like this:
 ```sh
 ASAN_OPTIONS=detect_leaks=1 ./build/dev/test/run
 ```
+
+To see test coverage for a data structure, run the cov script:
+
+```sh
+./build/dev/test/cov hashmap
+```
