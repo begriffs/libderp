@@ -119,7 +119,9 @@ v_reserve_capacity(vector *v, size_t desired)
 		n *= 2;
 	if (n == 0)
 		n = SIZE_MAX;
-	void **enlarged = realloc(v->elts, n);
+	if (n > SIZE_MAX / (sizeof *v->elts))
+		return v->capacity; /* realloc multiplication would overflow */
+	void **enlarged = realloc(v->elts, n * sizeof *v->elts);
 	if (!enlarged)
 		return v->capacity;
 	v->elts = enlarged;
