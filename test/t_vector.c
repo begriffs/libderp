@@ -25,7 +25,23 @@ int main(void)
 	size_t i;
 	vector *vint = v_new();
 	assert(v_length(vint) == 0);
+	assert(v_capacity(vint) > 0);
 	assert(v_is_empty(vint));
+
+	size_t too_big = SIZE_MAX;
+	/* too large a number for our address space */
+	assert(v_reserve_capacity(vint, too_big) < too_big);
+	/* still too large for address space */
+	too_big = 1 + SIZE_MAX/sizeof(void*);
+	/* technically possible, but not on today's machines */
+	too_big /= 2;
+	assert(v_reserve_capacity(vint, too_big) < too_big);
+
+	v_set_length(vint, 2);
+	assert(v_length(vint) == 2);
+	assert(v_at(vint, 0) == NULL);
+	assert(v_at(vint, 1) == NULL);
+	v_clear(vint);
 
 	for (i = 0; i < ARRAY_LEN(ivals); i++)
 		v_prepend(vint, ivals+i);
@@ -70,6 +86,11 @@ int main(void)
 	assert(*(int*)v_at(vint, 0) == 3);
 	assert(*(int*)v_at(vint, 1) == 2);
 	assert(*(int*)v_at(vint, 2) == 1);
+
+	v_set_length(vint, 1024);
+	assert(v_at(vint, 1023) == NULL);
+	v_append(vint, ivals);
+	assert(*(int*)v_at(vint, 1024) == 0);
 
 	v_clear(vint);
 	/* test for memory leak */

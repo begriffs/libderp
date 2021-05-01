@@ -7,7 +7,7 @@ for t in "$BASE"/t_*
 do
 	if [ -f "$t" ]
 	then
-		if ./"$t"
+		if ASAN_OPTIONS=allocator_may_return_null=1 ./"$t"
 		then
 			echo "YES: $t"
 		else
