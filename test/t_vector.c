@@ -27,6 +27,8 @@ int main(void)
 	assert(v_length(vint) == 0);
 	assert(v_capacity(vint) > 0);
 	assert(v_is_empty(vint));
+	assert(!v_at(vint, 0));
+	assert(!v_at(vint, 1337));
 
 	size_t too_big = SIZE_MAX;
 	/* too large a number for our address space */
@@ -66,9 +68,13 @@ int main(void)
 	assert(v_find_index(vint, ivals2+5, cmpint, NULL) == 5);
 	v_swap(vint, 5, 6);
 	assert(v_find_index(vint, ivals2+5, cmpint, NULL) == 6);
+	assert(v_find_last_index(vint, ivals2+5, cmpint, NULL) == 6);
 	v_remove(vint, 6);
 	assert(v_find_index(vint, ivals2+5, cmpint, NULL) == SIZE_MAX);
 	assert(v_find_last_index(vint, ivals2+5, cmpint, NULL) == SIZE_MAX);
+
+	assert(v_find_last_index(vint, v_last(vint), cmpint, NULL)
+			== v_length(vint)-1);
 
 	v_clear(vint);
 	int revme_even[] = {1,2};
