@@ -11,6 +11,12 @@ int cmpint(const void *a, const void *b, void *aux)
 	return *(int*)a - *(int*)b;
 }
 
+void myfree(void *a, void *aux)
+{
+	(void)aux;
+	free(a);
+}
+
 int ivals[] = {0,1,2,3,4,5,6,7,8,9};
 
 int main(void)
@@ -21,7 +27,10 @@ int main(void)
 	assert(l_is_empty(l));
 	l_prepend(l, &ivals[0]);
 	assert(l_length(l) == 1);
+	l_prepend(l, &ivals[0]);
+	assert(l_length(l) == 2);
 	assert(!l_is_empty(l));
+	l_remove_first(l);
 	l_remove_first(l);
 	l_remove_first(l); /* redundant */
 	assert(l_is_empty(l));
@@ -71,6 +80,10 @@ int main(void)
 	assert(l_find(l, ivals+4, cmpint, NULL) == l_first(l)->next);
 	assert(l_find_last(l, ivals+4, cmpint, NULL) == l_last(l)->prev);
 
+	int notfound = 100;
+	assert(!l_find(l, &notfound, cmpint, NULL));
+	assert(!l_find_last(l, &notfound, cmpint, NULL));
+
 	l_clear(l);
 
 	for (i = 0; i < ARRAY_LEN(ivals); i++)
@@ -79,6 +92,12 @@ int main(void)
 	assert(*(int*)l_last(l)->data == 9);
 	assert(*(int*)l_remove_last(l) == 9);
 	assert(*(int*)l_remove_last(l) == 8);
+
+	l_clear(l);
+	l_dtor(l, myfree, NULL);
+	int *life = malloc(sizeof *life);
+	*life = 42;
+	l_append(l, life);
 
 	l_free(l);
 
