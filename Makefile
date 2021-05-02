@@ -1,7 +1,7 @@
 .POSIX :
 
 VARIANT = release
-CFLAGS = -Iinclude
+CFLAGS = -Iinclude -fPIC
 
 MAKEFILES = Makefile build/$(VARIANT)/extra.mk
 
@@ -16,9 +16,8 @@ lib : build/$(VARIANT)/libderp.so build/$(VARIANT)/libderp.a
 build/$(VARIANT)/libderp.a : $(OBJS)
 	ar r $@ $?
 
-# TODO: test portability of -fPIC -shared across compilers */
 build/$(VARIANT)/libderp.so : $(OBJS)
-	$(CC) $(CFLAGS) -fPIC -shared $(OBJS) -o $@
+	$(CC) $(CFLAGS) -shared $(OBJS) -o $@
 
 tests : build/$(VARIANT)/test/t_vector build/$(VARIANT)/test/t_list build/$(VARIANT)/test/t_hashmap
 
