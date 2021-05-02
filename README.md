@@ -6,7 +6,7 @@ Why you might use it
 * a proper library that you can link against
 * no abuse of translation units, no weird macros
 * includes proper man pages (TODO)
-* shared and static library (TODO)
+* shared and static library
 * pkg-config interface (TODO)
 * available through OS package manager (TODO)
 * developer friendly ISC license

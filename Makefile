@@ -5,11 +5,20 @@ CFLAGS = -Iinclude
 
 MAKEFILES = Makefile build/$(VARIANT)/extra.mk
 
+OBJS = build/$(VARIANT)/vector.o build/$(VARIANT)/list.o build/$(VARIANT)/hashmap.o
+
 .SUFFIXES :
 
 include build/$(VARIANT)/extra.mk
 
-lib : build/$(VARIANT)/vector.o build/$(VARIANT)/list.o build/$(VARIANT)/hashmap.o
+lib : build/$(VARIANT)/libderp.so build/$(VARIANT)/libderp.a
+
+build/$(VARIANT)/libderp.a : $(OBJS)
+	ar r $@ $?
+
+# TODO: test portability of -fPIC -shared across compilers */
+build/$(VARIANT)/libderp.so : $(OBJS)
+	$(CC) $(CFLAGS) -fPIC -shared $(OBJS) -o $@
 
 tests : build/$(VARIANT)/test/t_vector build/$(VARIANT)/test/t_list build/$(VARIANT)/test/t_hashmap
 
