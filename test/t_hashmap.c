@@ -41,6 +41,14 @@ int main(void)
 	assert(hm_length(h) == 1);
 	assert(*(int*)hm_at(h, "zero") == 0);
 
+	/* change it */
+	hm_insert(h, "zero", ivals+1);
+	assert(hm_length(h) == 1);
+	assert(*(int*)hm_at(h, "zero") == 1);
+	/* set it back */
+	hm_insert(h, "zero", ivals);
+	assert(*(int*)hm_at(h, "zero") == 0);
+
 	hm_insert(h, "one", ivals+1);
 	assert(hm_length(h) == 2);
 	assert(*(int*)hm_at(h, "zero") == 0);
@@ -55,10 +63,15 @@ int main(void)
 	assert(!hm_at(h, "zero"));
 
 	/* test for memory leak */
-	hm_dtor(h, NULL, myfree, NULL);
-	int *life = malloc(sizeof *life);
-	*life = 42;
-	hm_insert(h, "life", life);
+	hm_dtor(h, myfree, myfree, NULL);
+	char *key = malloc(5);
+	int  *val1 = malloc(sizeof *val1),
+	     *val2 = malloc(sizeof *val2);
+	strcpy(key, "life");
+	*val1 = 42;
+	*val2 = 13;
+	hm_insert(h, key, val1);
+	hm_insert(h, key, val2);
 
 	hm_free(h);
 
