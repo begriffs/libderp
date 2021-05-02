@@ -150,7 +150,6 @@ hm_insert(hashmap *h, void *key, void *val)
 		if (p->v != val && h->val_dtor)
 			h->val_dtor(p->v, h->dtor_aux);
 		p->v = val;
-		return true;
 	}
 	else
 	{
@@ -159,8 +158,8 @@ hm_insert(hashmap *h, void *key, void *val)
 			return false;
 		*p = (struct pair){.k = key, .v = val};
 		l_append(bucket, p);
-		return true;
 	}
+	return true;
 }
 
 bool
