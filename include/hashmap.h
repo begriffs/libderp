@@ -2,11 +2,27 @@
 #define LIBDERP_HASHMAP_H
 
 #include "common.h"
+#include "list.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 
+/* for public consumption */
+struct hm_pair
+{
+	void *k;
+	void *v;
+};
+
 typedef struct hashmap hashmap;
+
+/* don't look inside, clients */
+typedef struct hm_iter
+{
+	hashmap *h;
+	size_t bucket;
+	list_item *offset;
+} hm_iter;
 
 hashmap * hm_new(size_t, hashfn *, comparator *, void *cmp_aux);
 void      hm_free(hashmap *);
@@ -17,5 +33,8 @@ void *    hm_at(const hashmap *, const void *);
 bool      hm_insert(hashmap *, void *key, void *val);
 bool      hm_remove(hashmap *, void *);
 void      hm_clear(hashmap *);
+
+bool            hm_iter_begin(hashmap *h, hm_iter *i);
+struct hm_pair* hm_iter_next(hm_iter *);
 
 #endif
