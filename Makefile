@@ -5,7 +5,7 @@ CFLAGS = -Iinclude -fPIC
 
 MAKEFILES = Makefile build/$(VARIANT)/extra.mk
 
-OBJS = build/$(VARIANT)/vector.o build/$(VARIANT)/list.o build/$(VARIANT)/hashmap.o
+OBJS = build/$(VARIANT)/vector.o build/$(VARIANT)/list.o build/$(VARIANT)/hashmap.o build/$(VARIANT)/treemap.o
 
 .SUFFIXES :
 
@@ -32,6 +32,10 @@ build/$(VARIANT)/list.o : src/list.c include/list.h include/common.h $(MAKEFILES
 build/$(VARIANT)/hashmap.o : src/hashmap.c include/hashmap.h include/list.h include/common.h $(MAKEFILES)
 	rm -f build/$(VARIANT)/hashmap.gcda
 	$(CC) $(CFLAGS) -o $@ -c src/hashmap.c
+
+build/$(VARIANT)/treemap.o : src/treemap.c include/treemap.h include/common.h $(MAKEFILES)
+	rm -f build/$(VARIANT)/treemap.gcda
+	$(CC) $(CFLAGS) -o $@ -c src/treemap.c
 
 build/$(VARIANT)/test/t_vector : build/$(VARIANT)/vector.o test/t_vector.c
 	rm -f t_vector.gcda

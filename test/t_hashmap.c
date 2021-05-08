@@ -58,7 +58,7 @@ int main(void)
 	assert(*(int*)hm_at(h, "one") == 1);
 	assert(!hm_at(h, "flurgle"));
 
-	struct hm_pair *p;
+	struct map_pair *p;
 	int n_keys = 0;
 	for (hm_iter_begin(h, &i); (p = hm_iter_next(&i)); n_keys++)
 		assert(strcmp((char*)p->k, "zero") == 0 ||

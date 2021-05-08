@@ -23,7 +23,7 @@ static void
 _hm_free_pair(void *x, void *aux)
 {
 	hashmap *h = aux;
-	struct hm_pair *p = x;
+	struct map_pair *p = x;
 	if (h->key_dtor)
 		h->key_dtor(p->k, h->dtor_aux);
 	if (h->val_dtor)
@@ -116,7 +116,7 @@ _hm_cmp(const void *p, const void *k, void *aux)
 {
 	assert(p); assert(k); assert(aux);
 	hashmap *h = aux;
-	return h->cmp(((const struct hm_pair *)p)->k, k, h->cmp_aux);
+	return h->cmp(((const struct map_pair *)p)->k, k, h->cmp_aux);
 }
 
 void *
@@ -128,7 +128,7 @@ hm_at(const hashmap *h, const void *key)
 	list_item *li = l_find(bucket, key, _hm_cmp, (void*)h);
 	if (!li)
 		return NULL;
-	return ((struct hm_pair*)li->data)->v;
+	return ((struct map_pair*)li->data)->v;
 }
 
 bool
@@ -140,17 +140,17 @@ hm_insert(hashmap *h, void *key, void *val)
 	list_item *li = l_find(bucket, key, _hm_cmp, h);
 	if (li)
 	{
-		struct hm_pair *p = (struct hm_pair*)li->data;
+		struct map_pair *p = (struct map_pair*)li->data;
 		if (p->v != val && h->val_dtor)
 			h->val_dtor(p->v, h->dtor_aux);
 		p->v = val;
 	}
 	else
 	{
-		struct hm_pair *p = malloc(sizeof *p);
+		struct map_pair *p = malloc(sizeof *p);
 		if (!p)
 			return false;
-		*p = (struct hm_pair){.k = key, .v = val};
+		*p = (struct map_pair){.k = key, .v = val};
 		l_append(bucket, p);
 	}
 	return true;
@@ -188,7 +188,7 @@ hm_iter_begin(hashmap *h, hm_iter *i)
 	return true;
 }
 
-struct hm_pair *
+struct map_pair *
 hm_iter_next(hm_iter *i)
 {
 	if (!i)
@@ -197,7 +197,7 @@ hm_iter_next(hm_iter *i)
 		i->offset = l_first(i->h->buckets[++i->bucket]);
 	if (!i->offset)
 		return NULL;
-	struct hm_pair *p = i->offset->data;
+	struct map_pair *p = i->offset->data;
 	i->offset = i->offset->next;
 	return p;
 }
