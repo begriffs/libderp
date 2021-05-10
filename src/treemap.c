@@ -2,18 +2,24 @@
 
 #include <stdlib.h>
 
-enum color { RED, BLACK };
+/* AA Tree, which came from Arne Andersson
+ * Balanced Search Trees Made Simple
+ * https://user.it.uu.se/~arnea/ps/simp.pdf
+ *
+ * As fast as an RB-tree, but free of those
+ * ugly special cases. */
 
 struct tm_node
 {
-	struct tm_node *left, *right, *parent;
-	enum color color;
+	int level;
 	struct map_pair *pair;
+	struct tm_node *left, *right;
 };
 
 struct treemap
 {
-	struct tm_node *root;
+	struct tm_node *root, *bottom;
+	struct tm_node *deleted, *last;
 
 	dtor *key_dtor;
 	dtor *val_dtor;
@@ -26,9 +32,20 @@ treemap *
 tm_new(comparator *cmp, void *cmp_aux)
 {
 	treemap *t = malloc(sizeof *t);
-	if (!t)
+	struct tm_node *bottom = malloc(sizeof *bottom);
+	if (!t || !bottom)
+	{
+		free(t);
+		free(bottom);
 		return NULL;
+	}
+	/* sentinel living below all leaves */
+	*bottom = (struct tm_node){
+		.left = bottom, .right = bottom, .level = 0
+	};
 	*t = (treemap){
+		.root = bottom,
+		.bottom = bottom,
 		.cmp = cmp,
 		.cmp_aux = cmp_aux
 	};
@@ -52,17 +69,18 @@ tm_dtor(treemap *t, dtor *key_dtor, dtor *val_dtor, void *dtor_aux)
 }
 
 static size_t
-_tm_length(const struct tm_node *n)
+_tm_length(const struct tm_node *n, const struct tm_node *bottom)
 {
-	if (!n)
+	if (n == bottom)
 		return 0;
-	return 1 + _tm_length(n->left) + _tm_length(n->right);
+	return 1 +
+		_tm_length(n->left, bottom) + _tm_length(n->right, bottom);
 }
 
 size_t
 tm_length(const treemap *t)
 {
-	return t ? _tm_length(t->root) : 0;
+	return t ? _tm_length(t->root, t->bottom) : 0;
 }
 
 bool
@@ -74,7 +92,7 @@ tm_is_empty(const treemap *t)
 static void *
 _tm_at(const treemap *t, const struct tm_node *n, const void *key)
 {
-	if (!n)
+	if (n == t->bottom)
 		return NULL;
 	int x = t->cmp(n->pair->k, key, t->cmp_aux);
 	if (x == 0)
@@ -90,148 +108,69 @@ tm_at(const treemap *t, const void *key)
 	return t ? _tm_at(t, t->root, key) : NULL;
 }
 
-static void
-_tm_left_rotate(treemap *t, struct tm_node *x)
-{
-	struct tm_node *y = x->right;
-	x->right = y->left;
-	if (y->left)
-		y->left->parent = x;
-	y->parent = x->parent;
-	if (!x->parent)
-		t->root = y;
-	else if (x == x->parent->left)
-		x->parent->left = y;
-	else
-		x->parent->right = y;
-	y->left = x;
-	x->parent = y;
-}
-
-static void
-_tm_right_rotate(treemap *t, struct tm_node *x)
-{
-	struct tm_node *y = x->left;
-	x->left = y->right;
-	if (y->right)
-		y->right->parent = x;
-	y->parent = x->parent;
-	if (!x->parent)
-		t->root = y;
-	else if (x == x->parent->right)
-		x->parent->right = y;
-	else
-		x->parent->left = y;
-	y->right = x;
-	x->parent = y;
+static struct tm_node *
+_tm_skew(struct tm_node *n) {
+   if (n->level != n->left->level)
+	   return n;
+   struct tm_node *left = n->left;
+   n->left = left->right;
+   left->right = n;
+   n = left;
+   return n;
 }
 
 static struct tm_node *
-_tm_insert(treemap *t, void *key, void *val)
-{
-	struct tm_node *parent = NULL, *cursor = t->root;
-	while (cursor)
-	{
-		parent = cursor;
-		int diff = t->cmp(key, cursor->pair->k, t->cmp_aux);
-		if (diff == 0)
-		{
-			if (val != cursor->pair->v && t->val_dtor)
-				t->val_dtor(cursor->pair->v, t->dtor_aux);
-			cursor->pair->v = val;
-			return cursor;
-		}
-		else if (diff < 0)
-			cursor = cursor->left;
-		else
-			cursor = cursor->right;
-	}
-
-	struct map_pair *p = malloc(sizeof *p);
-	struct tm_node *node = malloc(sizeof *node);
-	if (!p || !node)
-	{
-		free(p);
-		free(node);
-		return NULL;
-	}
-	*p = (struct map_pair){
-		.k = key, .v = val
-	};
-	*node = (struct tm_node){
-		.color = RED, .parent = parent, .pair = p
-	};
-	if (!parent)
-		t->root = node;
-	else if (t->cmp(key, parent->pair->k, t->cmp_aux))
-		parent->left = node;
-	else
-		parent->right = node;
-	return node;
+_tm_split(struct tm_node *n) {
+   if(n->right->right->level != n->level)
+	   return n;
+   struct tm_node *right = n->right;
+   n->right = right->left;
+   right->left = n;
+   n = right;
+   n->level++;
+   return n;
 }
 
-static void
-_tm_insert_fixup(treemap *t, struct tm_node *x)
+static struct tm_node *
+_tm_insert(treemap *t, struct tm_node *n, struct tm_node *prealloc)
 {
-	struct tm_node *uncle;
-	while (x->parent && x->parent->color == RED)
+	if (n == t->bottom)
+		return prealloc;
+	int x = t->cmp(n->pair->k, prealloc->pair->k, t->cmp_aux);
+	if (x < 0)
+		n->left = _tm_insert(t, n->left, prealloc);
+	else if (x > 0)
+		n->right = _tm_insert(t, n->right, prealloc);
+	else
 	{
-		if (x->parent->parent->left == x->parent)
-		{
-			uncle = x->parent->parent->right;
-			if (uncle->color == RED)
-			{
-				x->parent->parent->color = RED;
-				x->parent->color = BLACK;
-				uncle->color     = BLACK;
-				x = x->parent->parent;
-			}
-			else
-			{
-				if (x == x->parent->right)
-				{
-					x = x->parent;
-					_tm_left_rotate(t, x);
-				}
-				x->parent->color = BLACK;
-				x->parent->parent->color = RED;
-				_tm_right_rotate(t, x->parent->parent);
-			}
-		}
-		else
-		{
-			uncle = x->parent->parent->left;
-			if (uncle->color == RED)
-			{
-				x->parent->parent->color = RED;
-				x->parent->color = BLACK;
-				uncle->color     = BLACK;
-				x = x->parent->parent;
-			}
-			else
-			{
-				if (x == x->parent->left)
-				{
-					x = x->parent;
-					_tm_right_rotate(t, x);
-				}
-				x->parent->color = BLACK;
-				x->parent->parent->color = RED;
-				_tm_left_rotate(t, x->parent->parent);
-			}
-		}
+		// TODO: free the right stuff in prealloc
+		return n;
 	}
-	t->root->color = BLACK;
+	return _tm_split(_tm_skew(n));
 }
 
 bool
 tm_insert(treemap *t, void *key, void *val)
 {
-	struct tm_node *n = _tm_insert(t, key, val);
-	if (!n)
+	if (!t)
 		return false;
-	_tm_insert_fixup(t, n);
-	return true;
+	/* attempt the malloc before potentially splitting
+	 * and skewing the tree, so the insertion can be a
+	 * no-op on failure */
+	struct tm_node *prealloc = malloc(sizeof *prealloc);
+	struct map_pair *p = malloc(sizeof *p);
+	if (!prealloc || !p)
+	{
+		free(prealloc);
+		free(p);
+		return false;
+	}
+	*p = (struct map_pair){.k = key, .v = val};
+	*prealloc = (struct tm_node){
+		.level = 1, .pair = p, .left = t->bottom, .right = t->bottom
+	};
+
+	return _tm_insert(t, t->root, prealloc);
 }
 
 bool
