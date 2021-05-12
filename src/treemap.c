@@ -173,10 +173,48 @@ tm_insert(treemap *t, void *key, void *val)
 	return _tm_insert(t, t->root, prealloc);
 }
 
+static struct tm_node *
+_tm_remove(treemap *t, struct tm_node *n, void *key)
+{
+	if (n == t->bottom)
+		return n;
+	t->last = n;
+	if (t->cmp(key, n->pair->k, t->cmp_aux) < 0)
+		n->left = _tm_remove(t, n->left, key);
+	else
+	{
+		t->deleted = n;
+		n->right = _tm_remove(t, n->right, key);
+	}
+
+	if (n == t->last && t->deleted != t->bottom &&
+	    t->cmp(key, t->deleted->pair->k, t->cmp_aux) == 0)
+	{
+		t->deleted->pair->k = n->pair->k;
+		t->deleted = t->bottom;
+		n = n->right;
+		// TODO: free t->last and its data
+	} else if (n->left->level  < n->level-1 ||
+	           n->right->level < n->level-1) {
+		n->level--;
+		if (n->right->level > n->level)
+			n->right->level = n->level;
+		n               = _tm_skew(n);
+		n->right        = _tm_skew(n->right);
+		n->right->right = _tm_skew(n->right->right);
+		n               = _tm_split(n);
+		n->right        = _tm_split(n->right);
+	}
+	return n;
+}
+
 bool
 tm_remove(treemap *t, void *key)
 {
-
+	if (!t)
+		return false;
+	t->root = _tm_remove(t, t->root, key);
+	return true; // TODO: return false if key wasn't found
 }
 
 void
