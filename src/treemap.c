@@ -212,6 +212,13 @@ _tm_remove(treemap *t, struct tm_node *n, void *key)
 		t->deleted->pair->k = n->pair->k;
 		t->deleted = t->bottom;
 		n = n->right;
+
+		if (t->key_dtor)
+			t->key_dtor(t->last->pair->k, t->dtor_aux);
+		if (t->val_dtor)
+			t->val_dtor(t->last->pair->v, t->dtor_aux);
+		free(t->last->pair);
+		free(t->last);
 	} /* 3: on the way back up, rebalance */
 	else if (n->left->level  < n->level-1 ||
 	           n->right->level < n->level-1) {
