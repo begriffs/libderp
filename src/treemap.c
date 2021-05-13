@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-/* AA Tree, which came from Arne Andersson
+/* AA (Arne Andersson) Tree:
  * Balanced Search Trees Made Simple
  * https://user.it.uu.se/~arnea/ps/simp.pdf
  *
@@ -46,6 +46,8 @@ tm_new(comparator *cmp, void *cmp_aux)
 	*t = (treemap){
 		.root = bottom,
 		.bottom = bottom,
+		.deleted = bottom,
+		.last = bottom,
 		.cmp = cmp,
 		.cmp_aux = cmp_aux
 	};
@@ -55,7 +57,11 @@ tm_new(comparator *cmp, void *cmp_aux)
 void
 tm_free(treemap *t)
 {
-
+	if (!t)
+		return;
+	tm_clear(t);
+	free(t->bottom);
+	free(t);
 }
 
 void
@@ -94,7 +100,7 @@ _tm_at(const treemap *t, const struct tm_node *n, const void *key)
 {
 	if (n == t->bottom)
 		return NULL;
-	int x = t->cmp(n->pair->k, key, t->cmp_aux);
+	int x = t->cmp(key, n->pair->k, t->cmp_aux);
 	if (x == 0)
 		return n->pair->v;
 	else if (x < 0)
@@ -136,14 +142,21 @@ _tm_insert(treemap *t, struct tm_node *n, struct tm_node *prealloc)
 {
 	if (n == t->bottom)
 		return prealloc;
-	int x = t->cmp(n->pair->k, prealloc->pair->k, t->cmp_aux);
+	int x = t->cmp(prealloc->pair->k, n->pair->k, t->cmp_aux);
 	if (x < 0)
 		n->left = _tm_insert(t, n->left, prealloc);
 	else if (x > 0)
 		n->right = _tm_insert(t, n->right, prealloc);
 	else
 	{
-		// TODO: free the right stuff in prealloc
+		/* prealloc was for naught, but we'll use its value */
+		if (n->pair->v != prealloc->pair->v && t->val_dtor)
+			t->val_dtor(n->pair->v, t->dtor_aux);
+		n->pair->v = prealloc->pair->v;
+		if (n->pair->k != prealloc->pair->k && t->key_dtor)
+			t->key_dtor(prealloc->pair->k, t->dtor_aux);
+		free(prealloc->pair);
+		free(prealloc);
 		return n;
 	}
 	return _tm_split(_tm_skew(n));
@@ -170,7 +183,8 @@ tm_insert(treemap *t, void *key, void *val)
 		.level = 1, .pair = p, .left = t->bottom, .right = t->bottom
 	};
 
-	return _tm_insert(t, t->root, prealloc);
+	t->root = _tm_insert(t, t->root, prealloc);
+	return true;
 }
 
 static struct tm_node *
@@ -178,6 +192,9 @@ _tm_remove(treemap *t, struct tm_node *n, void *key)
 {
 	if (n == t->bottom)
 		return n;
+
+	/* 1: search down the tree and set pointers last and deleted */
+
 	t->last = n;
 	if (t->cmp(key, n->pair->k, t->cmp_aux) < 0)
 		n->left = _tm_remove(t, n->left, key);
@@ -187,14 +204,16 @@ _tm_remove(treemap *t, struct tm_node *n, void *key)
 		n->right = _tm_remove(t, n->right, key);
 	}
 
+	/* 2: At the bottom of the tree, remove element if present */
+
 	if (n == t->last && t->deleted != t->bottom &&
 	    t->cmp(key, t->deleted->pair->k, t->cmp_aux) == 0)
 	{
 		t->deleted->pair->k = n->pair->k;
 		t->deleted = t->bottom;
 		n = n->right;
-		// TODO: free t->last and its data
-	} else if (n->left->level  < n->level-1 ||
+	} /* 3: on the way back up, rebalance */
+	else if (n->left->level  < n->level-1 ||
 	           n->right->level < n->level-1) {
 		n->level--;
 		if (n->right->level > n->level)
@@ -217,8 +236,26 @@ tm_remove(treemap *t, void *key)
 	return true; // TODO: return false if key wasn't found
 }
 
+static void
+_tm_clear(treemap *t, struct tm_node *n)
+{
+	if (n == t->bottom)
+		return;
+	_tm_clear(t, n->left);
+	_tm_clear(t, n->right);
+	if (t->key_dtor)
+		t->key_dtor(n->pair->k, t->dtor_aux);
+	if (t->val_dtor)
+		t->val_dtor(n->pair->v, t->dtor_aux);
+	free(n->pair);
+	free(n);
+}
+
 void
 tm_clear(treemap *t)
 {
-
+	if (!t)
+		return;
+	_tm_clear(t, t->root);
+	t->root = t->deleted = t->last = t->bottom;
 }
