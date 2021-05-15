@@ -12,6 +12,12 @@ int scmp(const void *a, const void *b, void *aux)
 	return strcmp(a, b);
 }
 
+int icmp(const void *a, const void *b, void *aux)
+{
+	(void)aux;
+	return *(int*)a - *(int*)b;
+}
+
 void myfree(void *a, void *aux)
 {
 	(void)aux;
@@ -52,16 +58,56 @@ int main(void)
 
 	/* test for memory leak */
 	tm_dtor(t, myfree, myfree, NULL);
-	char *key = malloc(5);
+	char *key = malloc(5),
+		 *dupkey = malloc(5),
+		 *otherkey = malloc(3);
 	int  *val1 = malloc(sizeof *val1),
-	     *val2 = malloc(sizeof *val2);
+	     *val2 = malloc(sizeof *val2),
+	     *val3 = malloc(sizeof *val3);
 	strcpy(key, "life");
+	strcpy(dupkey, "life");
 	*val1 = 42;
 	*val2 = 13;
 	tm_insert(t, key, val1);
-	tm_insert(t, key, val2);
+	/* will free key, since dupkey is the same */
+	tm_insert(t, dupkey, val2);
+	/* safe to double-insert same key */
+	tm_insert(t, dupkey, val2);
+
+	/* tm_remove should free as needed */
+	*val3 = 200;
+	strcpy(otherkey, "hi");
+	tm_insert(t, otherkey, val3);
+	tm_remove(t, otherkey);
 
 	tm_free(t);
+
+	treemap *t2 = tm_new(icmp, NULL);
+	/* insert in ascending order, inherently unbalanced,
+	 * to exercise split/skew */
+	for (size_t i = 0; i < 10; i++)
+		tm_insert(t2, ivals+i, ivals+i);
+	assert(tm_length(t2) == 10);
+
+	/* all there? */
+	for (size_t i = 0; i < 10; i++)
+		assert(*(int*)tm_at(t2, ivals+i) == (int)i);
+
+	/* remove odd ones */
+	for (size_t i = 1; i < 10; i+=2)
+		tm_remove(t2, ivals+i);
+	assert(tm_length(t2) == 5);
+
+	/* evens should still be there */
+	for (size_t i = 0; i < 10; i+=2)
+		assert((int)i == *(int*)tm_at(t2, ivals+i));
+
+	/* remove evens */
+	for (size_t i = 0; i < 10; i+=2)
+		tm_remove(t2, ivals+i);
+	assert(tm_is_empty(t2));
+
+	tm_free(t2);
 
 	return 0;
 }

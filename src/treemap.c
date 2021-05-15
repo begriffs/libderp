@@ -152,9 +152,9 @@ _tm_insert(treemap *t, struct tm_node *n, struct tm_node *prealloc)
 		/* prealloc was for naught, but we'll use its value */
 		if (n->pair->v != prealloc->pair->v && t->val_dtor)
 			t->val_dtor(n->pair->v, t->dtor_aux);
-		n->pair->v = prealloc->pair->v;
 		if (n->pair->k != prealloc->pair->k && t->key_dtor)
-			t->key_dtor(prealloc->pair->k, t->dtor_aux);
+			t->key_dtor(n->pair->k, t->dtor_aux);
+		*n->pair = *prealloc->pair;
 		free(prealloc->pair);
 		free(prealloc);
 		return n;
@@ -209,19 +209,20 @@ _tm_remove(treemap *t, struct tm_node *n, void *key)
 	if (n == t->last && t->deleted != t->bottom &&
 	    t->cmp(key, t->deleted->pair->k, t->cmp_aux) == 0)
 	{
-		t->deleted->pair->k = n->pair->k;
+		if (t->key_dtor)
+			t->key_dtor(t->deleted->pair->k, t->dtor_aux);
+		if (t->val_dtor)
+			t->val_dtor(t->deleted->pair->v, t->dtor_aux);
+
+		*t->deleted->pair = *n->pair;
 		t->deleted = t->bottom;
 		n = n->right;
 
-		if (t->key_dtor)
-			t->key_dtor(t->last->pair->k, t->dtor_aux);
-		if (t->val_dtor)
-			t->val_dtor(t->last->pair->v, t->dtor_aux);
 		free(t->last->pair);
 		free(t->last);
 	} /* 3: on the way back up, rebalance */
 	else if (n->left->level  < n->level-1 ||
-	           n->right->level < n->level-1) {
+	         n->right->level < n->level-1) {
 		n->level--;
 		if (n->right->level > n->level)
 			n->right->level = n->level;
