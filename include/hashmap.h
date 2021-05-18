@@ -8,14 +8,7 @@
 #include <stddef.h>
 
 typedef struct hashmap hashmap;
-
-/* don't look inside, clients */
-typedef struct hm_iter
-{
-	hashmap *h;
-	size_t bucket;
-	list_item *offset;
-} hm_iter;
+typedef struct hm_iter hm_iter;
 
 hashmap * hm_new(size_t, hashfn *, comparator *, void *cmp_aux);
 void      hm_free(hashmap *);
@@ -27,7 +20,8 @@ bool      hm_insert(hashmap *, void *key, void *val);
 bool      hm_remove(hashmap *, void *);
 void      hm_clear(hashmap *);
 
-bool             hm_iter_begin(hashmap *h, hm_iter *i);
+hm_iter*         hm_iter_begin(hashmap *h);
 struct map_pair* hm_iter_next(hm_iter *);
+void             hm_iter_free(hm_iter *);
 
 #endif

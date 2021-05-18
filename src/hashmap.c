@@ -19,6 +19,13 @@ struct hashmap
 	void *dtor_aux;
 };
 
+struct hm_iter
+{
+	hashmap *h;
+	size_t bucket;
+	list_item *offset;
+};
+
 static void
 _hm_free_pair(void *x, void *aux)
 {
@@ -179,13 +186,16 @@ hm_clear(hashmap *h)
 		l_clear(h->buckets[i]);
 }
 
-bool
-hm_iter_begin(hashmap *h, hm_iter *i)
+hm_iter *
+hm_iter_begin(hashmap *h)
 {
-	if (!h || !i)
-		return false;
+	if (!h)
+		return NULL;
+	hm_iter *i = malloc(sizeof *i);
+	if (!i)
+		return NULL;
 	*i = (hm_iter){.h = h};
-	return true;
+	return i;
 }
 
 struct map_pair *
@@ -200,4 +210,10 @@ hm_iter_next(hm_iter *i)
 	struct map_pair *p = i->offset->data;
 	i->offset = i->offset->next;
 	return p;
+}
+
+void
+hm_iter_free(hm_iter *i)
+{
+	free(i);
 }

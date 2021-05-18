@@ -33,11 +33,12 @@ void myfree(void *a, void *aux)
 int main(void)
 {
 	hashmap *h = hm_new(0, djb2hash, scmp, NULL);
-	hm_iter i;
+	hm_iter *i;
 	assert(hm_length(h) == 0);
 	assert(hm_is_empty(h));
-	hm_iter_begin(h, &i);
-	assert(!hm_iter_next(&i));
+	i = hm_iter_begin(h);
+	assert(!hm_iter_next(i));
+	hm_iter_free(i);
 
 	assert(!hm_at(h, "zero"));
 	hm_insert(h, "zero", ivals);
@@ -60,9 +61,10 @@ int main(void)
 
 	struct map_pair *p;
 	int n_keys = 0;
-	for (hm_iter_begin(h, &i); (p = hm_iter_next(&i)); n_keys++)
+	for (i = hm_iter_begin(h); (p = hm_iter_next(i)); n_keys++)
 		assert(strcmp((char*)p->k, "zero") == 0 ||
 		       strcmp((char*)p->k, "one") == 0);
+	hm_iter_free(i);
 	assert(n_keys == 2);
 
 	hm_remove(h, "one");
