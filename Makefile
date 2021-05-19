@@ -33,7 +33,7 @@ build/$(VARIANT)/hashmap.o : src/hashmap.c include/hashmap.h include/list.h incl
 	rm -f build/$(VARIANT)/hashmap.gcda
 	$(CC) $(CFLAGS) -o $@ -c src/hashmap.c
 
-build/$(VARIANT)/treemap.o : src/treemap.c include/treemap.h include/common.h $(MAKEFILES)
+build/$(VARIANT)/treemap.o : src/treemap.c include/treemap.h include/list.h include/common.h $(MAKEFILES)
 	rm -f build/$(VARIANT)/treemap.gcda
 	$(CC) $(CFLAGS) -o $@ -c src/treemap.c
 
@@ -49,6 +49,6 @@ build/$(VARIANT)/test/t_hashmap : build/$(VARIANT)/hashmap.o build/$(VARIANT)/li
 	rm -f t_hashmap.gcda
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ build/$(VARIANT)/hashmap.o build/$(VARIANT)/list.o test/t_hashmap.c $(LDLIBS)
 
-build/$(VARIANT)/test/t_treemap : build/$(VARIANT)/treemap.o test/t_treemap.c
+build/$(VARIANT)/test/t_treemap : build/$(VARIANT)/treemap.o build/$(VARIANT)/list.o test/t_treemap.c
 	rm -f t_treemap.gcda
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ build/$(VARIANT)/treemap.o test/t_treemap.c $(LDLIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ build/$(VARIANT)/treemap.o build/$(VARIANT)/list.o test/t_treemap.c $(LDLIBS)

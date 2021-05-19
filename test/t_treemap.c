@@ -56,6 +56,23 @@ int main(void)
 	assert(tm_length(t) == 0);
 	assert(!tm_at(t, "zero"));
 
+	/* iterator should sort */
+	tm_insert(t, "d", NULL);
+	tm_insert(t, "a", NULL);
+	tm_insert(t, "e", NULL);
+	tm_insert(t, "c", NULL);
+	tm_insert(t, "b", NULL);
+
+	tm_iter *i = tm_iter_begin(t);
+	assert(*(char*)tm_iter_next(i)->k == 'a');
+	assert(*(char*)tm_iter_next(i)->k == 'b');
+	assert(*(char*)tm_iter_next(i)->k == 'c');
+	assert(*(char*)tm_iter_next(i)->k == 'd');
+	assert(*(char*)tm_iter_next(i)->k == 'e');
+	assert(!tm_iter_next(i));
+	tm_iter_free(i);
+	tm_clear(t);
+
 	/* test for memory leak */
 	tm_dtor(t, myfree, myfree, NULL);
 	char *key = malloc(5),

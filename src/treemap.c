@@ -1,3 +1,4 @@
+#include "list.h"
 #include "treemap.h"
 
 #include <stdlib.h>
@@ -26,6 +27,12 @@ struct treemap
 	comparator *cmp;
 	void *cmp_aux;
 	void *dtor_aux;
+};
+
+struct tm_iter
+{
+	list *stack;
+	struct tm_node *n, *bottom;
 };
 
 treemap *
@@ -266,4 +273,52 @@ tm_clear(treemap *t)
 		return;
 	_tm_clear(t, t->root);
 	t->root = t->deleted = t->last = t->bottom;
+}
+
+tm_iter *
+tm_iter_begin(treemap *t)
+{
+	if (!t)
+		return NULL;
+	struct tm_iter *i = malloc(sizeof *i);
+	list *l = l_new();
+	if (!i || !l)
+	{
+		free(i);
+		l_free(l);
+		return NULL;
+	}
+	*i = (struct tm_iter){
+		.stack = l,
+		.n = t->root,
+		.bottom = t->bottom
+	};
+	return i;
+}
+
+struct map_pair *
+tm_iter_next(tm_iter *i)
+{
+	if (!i)
+		return NULL;
+	if (l_is_empty(i->stack) && i->n == i->bottom)
+		return NULL; /* done */
+	if (i->n != i->bottom)
+	{
+		if (!l_append(i->stack, i->n))
+			return NULL; /* OOM */
+		i->n = i->n->left;
+		return tm_iter_next(i);
+	}
+	struct tm_node *result = l_remove_last(i->stack);
+	i->n = result->right;
+	return result->pair;
+}
+
+void
+tm_iter_free(tm_iter *i)
+{
+	if (i)
+		l_free(i->stack);
+	free(i);
 }

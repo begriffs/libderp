@@ -7,12 +7,7 @@
 #include <stddef.h>
 
 typedef struct treemap treemap;
-
-/* don't look inside, clients */
-typedef struct tm_iter
-{
-	int foo;
-} tm_iter;
+typedef struct tm_iter tm_iter;
 
 treemap * tm_new(comparator *, void *cmp_aux);
 void      tm_free(treemap *);
@@ -24,7 +19,8 @@ bool      tm_insert(treemap *, void *key, void *val);
 bool      tm_remove(treemap *, void *);
 void      tm_clear(treemap *);
 
-bool             tm_iter_begin(treemap *h, tm_iter *i);
+tm_iter*         tm_iter_begin(treemap *);
 struct map_pair* tm_iter_next(tm_iter *);
+void             tm_iter_free(tm_iter *);
 
 #endif
