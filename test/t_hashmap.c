@@ -87,5 +87,17 @@ int main(void)
 
 	hm_free(h);
 
+	/* test iterator when hashmap has only one bucket */
+	hashmap *h1 = hm_new(1, djb2hash, scmp, NULL);
+	assert(hm_is_empty(h1));
+	hm_insert(h1, "zero", ivals);
+	hm_insert(h1, "one", ivals+1);
+	assert(hm_length(h1) == 2);
+	for (n_keys = 0, i = hm_iter_begin(h1); (p = hm_iter_next(i)); n_keys++)
+		;
+	assert(n_keys == 2);
+	hm_iter_free(i);
+	hm_free(h1);
+
 	return 0;
 }

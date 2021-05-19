@@ -204,7 +204,7 @@ hm_iter_next(hm_iter *i)
 	if (!i)
 		return NULL;
 	while (!i->offset && i->bucket < i->h->capacity)
-		i->offset = l_first(i->h->buckets[++i->bucket]);
+		i->offset = l_first(i->h->buckets[i->bucket++]);
 	if (!i->offset)
 		return NULL;
 	struct map_pair *p = i->offset->data;

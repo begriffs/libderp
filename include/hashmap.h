@@ -20,7 +20,7 @@ bool      hm_insert(hashmap *, void *key, void *val);
 bool      hm_remove(hashmap *, void *);
 void      hm_clear(hashmap *);
 
-hm_iter*         hm_iter_begin(hashmap *h);
+hm_iter*         hm_iter_begin(hashmap *);
 struct map_pair* hm_iter_next(hm_iter *);
 void             hm_iter_free(hm_iter *);
 
