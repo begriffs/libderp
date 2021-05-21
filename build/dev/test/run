@@ -3,6 +3,8 @@
 BASE=$(dirname "$0")
 CODE=0
 
+find . -name '*.gcda' -exec rm -f {} +
+
 export ASAN_OPTIONS="allocator_may_return_null=1:$ASAN_OPTIONS"
 
 for t in "$BASE"/t_*

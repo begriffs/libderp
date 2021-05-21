@@ -2,6 +2,6 @@
 
 export ASAN_OPTIONS="allocator_may_return_null=1:$ASAN_OPTIONS"
 
-find build/dev -name '*.gcda' -exec rm {} +
+find . -name '*.gcda' -exec rm -f {} +
 ./build/dev/test/t_$1
 llvm-cov gcov build/dev/$1
