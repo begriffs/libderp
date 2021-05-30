@@ -3,7 +3,7 @@ set -eu
 
 MAJOR_VER=0
 MINOR_VER=0
-PATCH_VER=2
+PATCH_VER=0
 
 if [ $# -lt 1 ]
 then
