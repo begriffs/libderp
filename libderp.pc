@@ -1,0 +1,10 @@
+prefix=PREFIX
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: libderp
+Description: C collections. Easy to build, boring algorithms. Dumb is good.
+URL: https://github.com/begriffs/libderp
+Version: MAJOR.MINOR.PATCH
+Libs: -L${libdir} -lderp
+Cflags: -I${includedir}
