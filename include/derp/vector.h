@@ -1,7 +1,7 @@
 #ifndef LIBDERP_VECTOR_H
 #define LIBDERP_VECTOR_H
 
-#include "common.h"
+#include "derp/common.h"
 
 #include <stdbool.h>
 #include <stddef.h>

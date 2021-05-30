@@ -1,8 +1,8 @@
 #ifndef LIBDERP_HASHMAP_H
 #define LIBDERP_HASHMAP_H
 
-#include "common.h"
-#include "list.h"
+#include "derp/common.h"
+#include "derp/list.h"
 
 #include <stdbool.h>
 #include <stddef.h>

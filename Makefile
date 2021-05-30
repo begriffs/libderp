@@ -21,16 +21,16 @@ build/$(VARIANT)/libderp.so : $(OBJS)
 
 tests : build/$(VARIANT)/test/t_vector build/$(VARIANT)/test/t_list build/$(VARIANT)/test/t_hashmap build/$(VARIANT)/test/t_treemap
 
-build/$(VARIANT)/vector.o : src/vector.c include/vector.h include/common.h $(MAKEFILES)
+build/$(VARIANT)/vector.o : src/vector.c include/derp/vector.h include/derp/common.h $(MAKEFILES)
 	$(CC) $(CFLAGS) -o $@ -c src/vector.c
 
-build/$(VARIANT)/list.o : src/list.c include/list.h include/common.h $(MAKEFILES)
+build/$(VARIANT)/list.o : src/list.c include/derp/list.h include/derp/common.h $(MAKEFILES)
 	$(CC) $(CFLAGS) -o $@ -c src/list.c
 
-build/$(VARIANT)/hashmap.o : src/hashmap.c include/hashmap.h include/list.h include/common.h $(MAKEFILES)
+build/$(VARIANT)/hashmap.o : src/hashmap.c include/derp/hashmap.h include/derp/list.h include/derp/common.h $(MAKEFILES)
 	$(CC) $(CFLAGS) -o $@ -c src/hashmap.c
 
-build/$(VARIANT)/treemap.o : src/treemap.c include/treemap.h include/list.h include/common.h $(MAKEFILES)
+build/$(VARIANT)/treemap.o : src/treemap.c include/derp/treemap.h include/derp/list.h include/derp/common.h $(MAKEFILES)
 	$(CC) $(CFLAGS) -o $@ -c src/treemap.c
 
 build/$(VARIANT)/test/t_vector : build/$(VARIANT)/vector.o test/t_vector.c

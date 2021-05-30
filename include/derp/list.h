@@ -1,7 +1,7 @@
 #ifndef LIBDERP_LIST_H
 #define LIBDERP_LIST_H
 
-#include "common.h"
+#include "derp/common.h"
 
 #include <stdbool.h>
 #include <stddef.h>
