@@ -26,7 +26,7 @@ PREFIX="$DEST/libderp.$MAJOR_VER.$MINOR_VER.$PATCH_VER"
 
 if [ -d "$PREFIX" ]
 then
-	printf "ERROR: Directory already exists: %s\n" $PREFIX
+	printf "ERROR: Directory already exists: %s\n" "$PREFIX"
 	echo Remove it and run script again to reinstall.
 	exit 1
 fi
@@ -49,7 +49,7 @@ sed -e "s%PREFIX%$PREFIX%" \
 	-e "s%MAJOR%$MAJOR_VER%" -e "s%MINOR%$MINOR_VER%" -e "s%PATCH%$PATCH_VER%" \
 	libderp.pc > "$PREFIX/lib/pkgconfig/libderp.pc"
 
-echo "Libderp $MAJOR_VER.$MINOR_VER.$PATCH_VER installed."
+echo "Libderp $MAJOR_VER.$MINOR_VER.$PATCH_VER installed." 
 echo
-echo "To use with pkg-config\n\tadd $DEST/libderp/lib/pkgconfig to PKG_CONFIG_PATH"
-echo "To view man pages\n\tadd $DEST/libderp/man to MANPATH"
+printf "To use with pkg-config\n\tadd %s/libderp/lib/pkgconfig to PKG_CONFIG_PATH\n" "$DEST"
+printf "To view man pages\n\tadd %s/libderp/man to MANPATH\n" "$DEST"
