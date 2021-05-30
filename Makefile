@@ -17,7 +17,8 @@ build/$(VARIANT)/libderp.a : $(OBJS)
 	ar r $@ $?
 
 build/$(VARIANT)/libderp.so : $(OBJS)
-	$(CC) $(CFLAGS) -shared $(OBJS) -o $@
+	$(CC) $(CFLAGS) -shared $(OBJS) -o `basename $@`
+	mv `basename $@` $@
 
 tests : build/$(VARIANT)/test/t_vector build/$(VARIANT)/test/t_list build/$(VARIANT)/test/t_hashmap build/$(VARIANT)/test/t_treemap
 
