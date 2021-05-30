@@ -44,9 +44,10 @@ ln -s "$PREFIX" "$DEST/libderp"
 cp -R include/derp "$PREFIX/include"
 cp build/release/*.so build/release/*.a "$PREFIX/lib"
 
-m4 libderp.pc -D PREFIX="$PREFIX" \
-	-D MAJOR="$MAJOR_VER" -D MINOR="$MINOR_VER" -D PATCH="$PATCH_VER" \
-	> "$PREFIX/lib/pkgconfig/libderp.pc"
+# m4 is not universally available...posix scofflaws
+sed -e "s%PREFIX%$PREFIX%" \
+	-e "s%MAJOR%$MAJOR_VER%" -e "s%MINOR%$MINOR_VER%" -e "s%PATCH%$PATCH_VER%" \
+	libderp.pc > "$PREFIX/lib/pkgconfig/libderp.pc"
 
 echo "Libderp $MAJOR_VER.$MINOR_VER.$PATCH_VER installed."
 echo
