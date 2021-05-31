@@ -1,5 +1,7 @@
+config.mk
 *.[oa]
 *.so
+*.dylib
 *.gcda
 *.gcno
 *.gcov

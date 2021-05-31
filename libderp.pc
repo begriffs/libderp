@@ -5,6 +5,6 @@ includedir=${prefix}/include
 Name: libderp
 Description: C collections. Easy to build, boring algorithms. Dumb is good.
 URL: https://github.com/begriffs/libderp
-Version: MAJOR.MINOR.PATCH
+Version: VERSION
 Libs: -L${libdir} -lderp -Wl,-rpath,${libdir}
 Cflags: -I${includedir}

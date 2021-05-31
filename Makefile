@@ -3,22 +3,22 @@
 VARIANT = release
 CFLAGS = -Iinclude -fPIC
 
-MAKEFILES = Makefile build/$(VARIANT)/extra.mk
+MAKEFILES = Makefile build/$(VARIANT)/extra.mk config.mk
 
 OBJS = build/$(VARIANT)/vector.o build/$(VARIANT)/list.o build/$(VARIANT)/hashmap.o build/$(VARIANT)/treemap.o
 
 .SUFFIXES :
 
+include config.mk
 include build/$(VARIANT)/extra.mk
 
-lib : build/$(VARIANT)/libderp.so build/$(VARIANT)/libderp.a
+lib : build/$(VARIANT)/libderp.${SO} build/$(VARIANT)/libderp.a
 
 build/$(VARIANT)/libderp.a : $(OBJS)
 	ar r $@ $?
 
-build/$(VARIANT)/libderp.so : $(OBJS)
-	$(CC) $(CFLAGS) -shared $(OBJS) -o `basename $@`
-	mv `basename $@` $@
+build/$(VARIANT)/libderp.${SO} : $(OBJS) VERSION
+	$(CC) $(CFLAGS) ${SOFLAGS} $(OBJS) -o $@
 
 tests : build/$(VARIANT)/test/t_vector build/$(VARIANT)/test/t_list build/$(VARIANT)/test/t_hashmap build/$(VARIANT)/test/t_treemap
 

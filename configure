@@ -1,0 +1,18 @@
+#!/bin/sh
+set -eu
+
+rm -f config.mk
+
+# mac...think different :(
+if [ "$(uname -s)" = Darwin ]
+then
+	cat >> config.mk <<-EOF
+		SO = dylib
+		SOFLAGS = -dynamiclib -install_name "@rpath/libderp.dylib" -current_version \`cat VERSION\` -compatibility_version \`cut -d . -f 1 VERSION\`
+	EOF
+else
+	cat >> config.mk <<-EOF
+		SO = so
+		SOFLAGS = -shared -Wl,-soname,libderp.so.\`cut -d . -f 1 VERSION\`
+	EOF
+fi
