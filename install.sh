@@ -23,6 +23,7 @@ then
 	exit 1
 fi
 PREFIX="$DEST/libderp.$MAJOR_VER.$MINOR_VER.$PATCH_VER"
+SYM="$DEST/libderp.$MAJOR_VER"
 
 if [ -d "$PREFIX" ]
 then
@@ -38,18 +39,24 @@ then
 fi
 
 mkdir -p "$PREFIX/include" "$PREFIX/lib/pkgconfig" "$PREFIX/man"
-rm -f "$DEST/libderp"
-ln -s "$PREFIX" "$DEST/libderp"
+rm -f "$SYM"
+ln -s "$PREFIX" "$SYM"
 
 cp -R include/derp "$PREFIX/include"
 cp build/release/*.so build/release/*.a "$PREFIX/lib"
 
+# oh mac, you so crazy
+if command -v install_name_tool
+then
+	install_name_tool -id @rpath/libderp.so "$PREFIX/lib/libderp.so"
+fi
+
 # m4 is not universally available...posix scofflaws
-sed -e "s%PREFIX%$PREFIX%" \
+sed -e "s%PREFIX%$SYM%" \
 	-e "s%MAJOR%$MAJOR_VER%" -e "s%MINOR%$MINOR_VER%" -e "s%PATCH%$PATCH_VER%" \
 	libderp.pc > "$PREFIX/lib/pkgconfig/libderp.pc"
 
 echo "Libderp $MAJOR_VER.$MINOR_VER.$PATCH_VER installed." 
 echo
-printf "To use with pkg-config\n\tadd %s/libderp/lib/pkgconfig to PKG_CONFIG_PATH\n" "$DEST"
-printf "To view man pages\n\tadd %s/libderp/man to MANPATH\n" "$DEST"
+printf "To use with pkg-config\n\tadd %s/lib/pkgconfig to PKG_CONFIG_PATH\n" "$SYM"
+printf "To view man pages\n\tadd %s/man to MANPATH\n" "$SYM"
