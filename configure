@@ -13,6 +13,6 @@ then
 else
 	cat >> config.mk <<-EOF
 		SO = so
-		SOFLAGS = -shared -Wl,-soname,libderp.so.\`cut -d . -f 1 VERSION\`
+		SOFLAGS = -shared -Wl,-soname,libderp.so
 	EOF
 fi
