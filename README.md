@@ -7,8 +7,7 @@ Why you might use it
 * no abuse of translation units, no weird macros
 * includes proper man pages (TODO)
 * shared and static library
-* pkg-config interface (TODO)
-* available through OS package manager (TODO)
+* pkg-config interface
 * developer friendly ISC license
 
 Why you might avoid it
@@ -18,14 +17,63 @@ Why you might avoid it
 * hard-coded to use malloc/free
 * not (yet) thread safe
 
-### Building
+### Installation
 
-To make optimized object files in `build/release`, simply run:
+Compile and install the library:
 
 ```sh
-# works with any make variant, and any C99 compiler
+# detect proper way to generate shared library
+./configure
+
+# create static and shared libs in build/release
 make
+
+# create versioned directory for headers and libs
+# (if path is omitted, it tries /opt and /usr/local in that order)
+./install.sh /path
 ```
+
+The result will be a new folder and symbolic link like this:
+
+```
+/path/libderp.x -> /path/libderp.x.y.z
+/path/libderp.x.y.z
+├── include
+│   └── derp
+│       ├── ...
+│       └── ...
+├── lib
+│   ├── libderp.a
+│   ├── libderp.so (or dylib or dll)
+│   └── pkgconfig
+│       └── libderp.pc
+└── man
+    ├── ...
+    └── ...
+```
+
+### Usage
+
+Multiple versionf of libderp may be installed at once on the system in their
+own dedicated folders. This allows everything to be versioned, including
+headers and man pages.
+
+When linking to libderp, set an rpath inside your binary to point to the
+library of the appropriate major version. The easiest way is to use pkg-config
+which will provide you the correct compiler/linker flags.
+
+```sh
+# make desired libderp version visible to pkg-config
+export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/path/libderp.x/lib/pkgconfig"
+
+# compile foo.c and link with libderp
+cc `pkg-config --cflags --libs-only-L --libs-only-other libderp` \
+	-o foo foo.c `pkg-config --libs-only-l libderp`
+```
+
+The `--libs-only-other` options set the rpath for the resulting binary.
+
+### Libderp development
 
 To build in `build/dev` with warnings, profiling, debugging information, and
 code coverage data, use the "dev" variant:
@@ -35,9 +83,10 @@ code coverage data, use the "dev" variant:
 make VARIANT=dev
 ```
 
-Object files for both variants can coexist. There is no `make clean` target
-because there shouldn't be a need to do that manually. The Makefile has an
-accurate dependency graph, so running `make` should always know what to update.
+Object files for the dev and release variants can coexist. There is no `make
+clean` target because there shouldn't be a need to do that manually. The
+Makefile has an accurate dependency graph, so running `make` should always know
+what to update.
 
 ### Running tests
 
