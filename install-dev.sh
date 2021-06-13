@@ -49,8 +49,10 @@ cp build/release/*."$SO" "$PREFIX/lib"
 cp build/release/*.a  "$PREFIX/lib/static"
 
 # m4 is not universally available...posix scofflaws
-sed -e "s%PREFIX%$PREFIX%" -e "s%VERSION%$VER%" \
+sed -e "s%PREFIX%$PREFIX%" -e "s%VERSION%$VER%" -e "s%LIBDIR%lib%" \
 	libderp.pc > "$PREFIX/libderp.pc"
+sed -e "s%PREFIX%$PREFIX%" -e "s%VERSION%$VER%" -e "s%LIBDIR%lib/static%" \
+	libderp.pc > "$PREFIX/libderp-static.pc"
 
 echo "Libderp $VER installed."
 echo
