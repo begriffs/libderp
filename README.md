@@ -19,7 +19,7 @@ Why you might avoid it
 
 ### Installation
 
-Compile and install the library:
+Compile the shared and static libraries:
 
 ```sh
 # detect proper way to generate shared library
@@ -27,53 +27,69 @@ Compile and install the library:
 
 # create static and shared libs in build/release
 make
-
-# create versioned directory for headers and libs
-# (if path is omitted, it tries /opt and /usr/local in that order)
-./install.sh /path
 ```
 
-The result will be a new folder and symbolic link like this:
+#### Installing development assets (for the linker)
+
+To install libraries that an application would link with, along with headers,
+and pkg-config specifications, use the `install-dev.sh` script:
+
+```sh
+# (if path is omitted, it defaults to /opt)
+./install-dev.sh /path
+```
+
+The result will be a folder structure like this:
 
 ```
-/path/libderp.x -> /path/libderp.x.y.z
-/path/libderp.x.y.z
+/path/libderp-dev.x.y.z
+├── libderp.pc
+├── libderp-static.pc
 ├── include
 │   └── derp
 │       ├── ...
 │       └── ...
 ├── lib
-│   ├── libderp.a
 │   ├── libderp.so (or dylib or dll)
-│   └── pkgconfig
-│       └── libderp.pc
+│   └── static
+│       └── libderp.a
 └── man
     ├── ...
     └── ...
 ```
 
-### Usage
-
-Multiple versionf of libderp may be installed at once on the system in their
-own dedicated folders. This allows everything to be versioned, including
-headers and man pages.
-
-When linking to libderp, set an rpath inside your binary to point to the
-library of the appropriate major version. The easiest way is to use pkg-config
-which will provide you the correct compiler/linker flags.
+The easiest way to build against these files is to use pkg-config, which will
+provide the correct compiler/linker flags.
 
 ```sh
 # make desired libderp version visible to pkg-config
-export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/path/libderp.x/lib/pkgconfig"
+export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/path/libderp.x.y.z"
 
 # compile foo.c and link with libderp
-cc `pkg-config --cflags --libs-only-L --libs-only-other libderp` \
+cc `pkg-config --cflags --libs-only-L libderp` \
 	-o foo foo.c `pkg-config --libs-only-l libderp`
 ```
 
-The `--libs-only-other` options set the rpath for the resulting binary.
+To link statically against the library, change the pkg-config name `libderp` to
+`libderp-static`. This library uses position-independent code (PIC) for its
+static library. Mostly out of laziness in the build process, but it also allows
+shared libraries to link a static copy of libderp inside too. The disadvantage
+is that PIC causes a performance hit, especially on some older CPU
+architectures.
 
-### Libderp development
+#### Installing runtime assets (for the loader)
+
+To install the shared library for loading, use the `install.sh` script.
+
+```sh
+# (if path is omitted, it defaults to /usr/local/lib)
+./install.sh /path
+```
+
+This copies the shared library, and creates symbolic links to match the soname
+that applications are built against.
+
+### Contributing to Libderp
 
 To build in `build/dev` with warnings, profiling, debugging information, and
 code coverage data, use the "dev" variant:
