@@ -40,8 +40,7 @@ else
 	# soname symlinks
 	i=0
 	while [ $i -le "$MINOR" ]; do
-		rm -f "$DEST/libderp.so.$MAJOR.$i"
-		ln -s "$DEST/libderp.so.$VER" "$DEST/libderp.so.$MAJOR.$i"
+		ln -fs "libderp.so.$VER" "$DEST/libderp.so.$MAJOR.$i"
 		i=$((i+1))
 	done
 fi
