@@ -3,16 +3,22 @@ set -eu
 
 rm -f config.mk
 
+cat > config.mk <<-EOF
+	VER=\`(cat VERSION)\`
+	MAJOR=\`(cut -d . -f 1 VERSION)\`
+	MINOR=\`(cut -d . -f 2 VERSION)\`
+EOF
+
 # mac...think different :(
 if [ "$(uname -s)" = Darwin ]
 then
 	cat >> config.mk <<-EOF
 		SO = dylib
-		SOFLAGS = -dynamiclib -install_name "@rpath/libderp.dylib" -current_version \`cat VERSION\` -compatibility_version \`cut -d . -f 1 VERSION\`
+		SOFLAGS = -dynamiclib -install_name "libderp.\${MAJOR}.dylib" -current_version \${VER} -compatibility_version \${MAJOR}.\${MINOR}.0
 	EOF
 else
 	cat >> config.mk <<-EOF
 		SO = so
-		SOFLAGS = -shared -Wl,-soname,libderp.so
+		SOFLAGS = -shared -Wl,-soname,libderp.so.\${MAJOR}.\${MINOR}
 	EOF
 fi

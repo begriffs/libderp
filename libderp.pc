@@ -6,5 +6,5 @@ Name: libderp
 Description: C collections. Easy to build, boring algorithms. Dumb is good.
 URL: https://github.com/begriffs/libderp
 Version: VERSION
-Libs: -L${libdir} -lderp -Wl,-rpath,${libdir}
+Libs: -L${libdir} -lderp
 Cflags: -I${includedir}

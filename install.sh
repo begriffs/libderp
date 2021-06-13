@@ -2,7 +2,8 @@
 set -eu
 
 VER="$(cat VERSION)"
-MAJOR_VER="$(cut -d . -f 1 VERSION)"
+MAJOR="$(cut -d . -f 1 VERSION)"
+MINOR="$(cut -d . -f 2 VERSION)"
 
 if [ "$(uname -s)" = Darwin ]
 then
@@ -13,12 +14,7 @@ fi
 
 if [ $# -lt 1 ]
 then
-	if [ -d /opt ]
-	then
-		DEST=/opt
-	else
-		DEST=/usr/local
-	fi
+	DEST=/usr/local/lib
 else
 	DEST=$1
 fi
@@ -28,34 +24,26 @@ then
 	printf "ERROR: Destination directory '%s' does not exist\n" "$DEST"
 	exit 1
 fi
-PREFIX="$DEST/libderp.$VER"
-SYM="$DEST/libderp.$MAJOR_VER"
 
-if [ -d "$PREFIX" ]
-then
-	printf "ERROR: Directory already exists: %s\n" "$PREFIX"
-	echo Remove it and run script again to reinstall.
-	exit 1
-fi
-
-if [ ! -f "build/release/libderp.$SO" ] || [ ! -f build/release/libderp.a ]
+if [ ! -f "build/release/libderp.$SO" ]
 then
 	echo ERROR: Run make first to build the shared library
 	exit 1
 fi
 
-mkdir -p "$PREFIX/include" "$PREFIX/lib/pkgconfig" "$PREFIX/man"
-rm -f "$SYM"
-ln -s "$PREFIX" "$SYM"
+if [ "$SO" = dylib ]
+then
+	cp build/release/libderp.dylib "$DEST/libderp.$MAJOR.dylib"
+else
+	cp build/release/libderp.so "$DEST/libderp.so.$VER"
 
-cp -R include/derp "$PREFIX/include"
-cp build/release/*."$SO" build/release/*.a "$PREFIX/lib"
+	# soname symlinks
+	i=0
+	while [ $i -le "$MINOR" ]; do
+		rm -f "$DEST/libderp.so.$MAJOR.$i"
+		ln -s "$DEST/libderp.so.$VER" "$DEST/libderp.so.$MAJOR.$i"
+		i=$((i+1))
+	done
+fi
 
-# m4 is not universally available...posix scofflaws
-sed -e "s%PREFIX%$SYM%" -e "s%VERSION%$VER%" \
-	libderp.pc > "$PREFIX/lib/pkgconfig/libderp.pc"
-
-echo "Libderp $VER installed."
-echo
-printf "To use with pkg-config\n\tadd %s/lib/pkgconfig to PKG_CONFIG_PATH\n" "$SYM"
-printf "To view man pages\n\tadd %s/man to MANPATH\n" "$SYM"
+echo "Libderp $VER installed to $DEST."
