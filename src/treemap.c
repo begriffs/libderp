@@ -123,25 +123,25 @@ tm_at(const treemap *t, const void *key)
 
 static struct tm_node *
 _tm_skew(struct tm_node *n) {
-   if (n->level != n->left->level)
-	   return n;
-   struct tm_node *left = n->left;
-   n->left = left->right;
-   left->right = n;
-   n = left;
-   return n;
+	if (n->level != n->left->level)
+		return n;
+	struct tm_node *left = n->left;
+	n->left = left->right;
+	left->right = n;
+	n = left;
+	return n;
 }
 
 static struct tm_node *
 _tm_split(struct tm_node *n) {
-   if(n->right->right->level != n->level)
-	   return n;
-   struct tm_node *right = n->right;
-   n->right = right->left;
-   right->left = n;
-   n = right;
-   n->level++;
-   return n;
+	if(n->right->right->level != n->level)
+		return n;
+	struct tm_node *right = n->right;
+	n->right = right->left;
+	right->left = n;
+	n = right;
+	n->level++;
+	return n;
 }
 
 static struct tm_node *
