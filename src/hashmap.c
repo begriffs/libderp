@@ -27,7 +27,7 @@ struct hm_iter
 };
 
 static void
-_hm_free_pair(void *x, void *aux)
+internal_hm_free_pair(void *x, void *aux)
 {
 	hashmap *h = aux;
 	struct map_pair *p = x;
@@ -66,7 +66,7 @@ hm_new(size_t capacity, hashfn *hash,
 	{
 		if (!(h->buckets[i] = l_new()))
 			goto fail;
-		l_dtor(h->buckets[i], _hm_free_pair, h);
+		l_dtor(h->buckets[i], internal_hm_free_pair, h);
 	}
 	return h;
 
@@ -119,7 +119,7 @@ hm_is_empty(const hashmap *h)
 
 /* kinda weird assumption: p is struct pair*, k is type of p->k */
 static int
-_hm_cmp(const void *p, const void *k, void *aux)
+internal_hm_cmp(const void *p, const void *k, void *aux)
 {
 	assert(p); assert(k); assert(aux);
 	hashmap *h = aux;
@@ -132,7 +132,7 @@ hm_at(const hashmap *h, const void *key)
 	if (!h)
 		return NULL;
 	list *bucket = h->buckets[h->hash(key) % h->capacity];
-	list_item *li = l_find(bucket, key, _hm_cmp, (void*)h);
+	list_item *li = l_find(bucket, key, internal_hm_cmp, (void*)h);
 	if (!li)
 		return NULL;
 	return ((struct map_pair*)li->data)->v;
@@ -144,7 +144,7 @@ hm_insert(hashmap *h, void *key, void *val)
 	if (!h)
 		return false;
 	list *bucket = h->buckets[h->hash(key) % h->capacity];
-	list_item *li = l_find(bucket, key, _hm_cmp, h);
+	list_item *li = l_find(bucket, key, internal_hm_cmp, h);
 	if (li)
 	{
 		struct map_pair *p = (struct map_pair*)li->data;
@@ -169,10 +169,10 @@ hm_remove(hashmap *h, void *key)
 	if (!h)
 		return false;
 	list *bucket = h->buckets[h->hash(key) % h->capacity];
-	list_item *li = l_find(bucket, key, _hm_cmp, h);
+	list_item *li = l_find(bucket, key, internal_hm_cmp, h);
 	if (!li)
 		return false;
-	_hm_free_pair(li->data, h);
+	internal_hm_free_pair(li->data, h);
 	l_remove(bucket, li);
 	return true;
 }

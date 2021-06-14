@@ -6,7 +6,7 @@
 #ifdef NDEBUG
 	#define CHECK(x) (void)(x)
 #else
-	#define CHECK(x) _check(x)
+	#define CHECK(x) internal_check(x)
 #endif
 
 struct list
@@ -17,12 +17,12 @@ struct list
 	size_t length;
 };
 
-static void        _check(const list *l);
-static list_item * _merge(list_item *, list_item *,
-                          comparator *, void *);
-static list_item * _bisect(list_item *);
-static list_item * _sort(list_item *,
-                         comparator *, void *);
+static void        internal_check(const list *l);
+static list_item * internal_merge(list_item *, list_item *,
+                                  comparator *, void *);
+static list_item * internal_bisect(list_item *);
+static list_item * internal_sort(list_item *,
+                                 comparator *, void *);
 
 list *
 l_new(void)
@@ -243,7 +243,7 @@ l_sort(list *l, comparator *cmp, void *aux)
 	if (l_length(l) < 2)
 		return true;
 
-	l->head = _sort(l->head, cmp, aux);
+	l->head = internal_sort(l->head, cmp, aux);
 	list_item *t = l->head;
 	while (t && t->next)
 		t = t->next;
@@ -256,7 +256,7 @@ l_sort(list *l, comparator *cmp, void *aux)
 /*** Internals ***/
 
 static void
-_check(const list *l)
+internal_check(const list *l)
 {
 	assert(l);
 	assert( (!l->head && l->length == 0) ||
@@ -281,8 +281,8 @@ _check(const list *l)
 }
 
 static list_item *
-_merge(list_item *a, list_item *b,
-       comparator *cmp, void *aux)
+internal_merge(list_item *a, list_item *b,
+               comparator *cmp, void *aux)
 {
 	if (!a)
 		return b;
@@ -292,12 +292,12 @@ _merge(list_item *a, list_item *b,
 	if (cmp(a->data, b->data, aux) <= 0)
 	{
 		ret = a;
-		n = _merge(a->next, b, cmp, aux);
+		n = internal_merge(a->next, b, cmp, aux);
 	}
 	else
 	{
 		ret = b;
-		n = _merge(a, b->next, cmp, aux);
+		n = internal_merge(a, b->next, cmp, aux);
 	}
 	ret->next = n;
 	n->prev = ret;
@@ -305,7 +305,7 @@ _merge(list_item *a, list_item *b,
 }
 
 static list_item *
-_bisect(list_item *li)
+internal_bisect(list_item *li)
 {
 	assert(li);
 	list_item *fast = li;
@@ -320,14 +320,14 @@ _bisect(list_item *li)
 }
 
 static list_item *
-_sort(list_item *l, comparator *cmp, void *aux)
+internal_sort(list_item *l, comparator *cmp, void *aux)
 {
 	assert(l);
 	assert(cmp);
 	if (!l->next)
 		return l;
-	list_item *r = _bisect(l);
-	l = _sort(l, cmp, aux);
-	r = _sort(r, cmp, aux);
-	return _merge(l, r, cmp, aux);
+	list_item *r = internal_bisect(l);
+	l = internal_sort(l, cmp, aux);
+	r = internal_sort(r, cmp, aux);
+	return internal_merge(l, r, cmp, aux);
 }

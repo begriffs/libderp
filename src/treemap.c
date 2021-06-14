@@ -82,18 +82,20 @@ tm_dtor(treemap *t, dtor *key_dtor, dtor *val_dtor, void *dtor_aux)
 }
 
 static size_t
-_tm_length(const struct tm_node *n, const struct tm_node *bottom)
+internal_tm_length(const struct tm_node *n,
+                   const struct tm_node *bottom)
 {
 	if (n == bottom)
 		return 0;
 	return 1 +
-		_tm_length(n->left, bottom) + _tm_length(n->right, bottom);
+		internal_tm_length(n->left, bottom) +
+		internal_tm_length(n->right, bottom);
 }
 
 size_t
 tm_length(const treemap *t)
 {
-	return t ? _tm_length(t->root, t->bottom) : 0;
+	return t ? internal_tm_length(t->root, t->bottom) : 0;
 }
 
 bool
@@ -103,7 +105,8 @@ tm_is_empty(const treemap *t)
 }
 
 static void *
-_tm_at(const treemap *t, const struct tm_node *n, const void *key)
+internal_tm_at(const treemap *t, const struct tm_node *n,
+               const void *key)
 {
 	if (n == t->bottom)
 		return NULL;
@@ -111,18 +114,18 @@ _tm_at(const treemap *t, const struct tm_node *n, const void *key)
 	if (x == 0)
 		return n->pair->v;
 	else if (x < 0)
-		return _tm_at(t, n->left, key);
-	return _tm_at(t, n->right, key);
+		return internal_tm_at(t, n->left, key);
+	return internal_tm_at(t, n->right, key);
 }
 
 void *
 tm_at(const treemap *t, const void *key)
 {
-	return t ? _tm_at(t, t->root, key) : NULL;
+	return t ? internal_tm_at(t, t->root, key) : NULL;
 }
 
 static struct tm_node *
-_tm_skew(struct tm_node *n) {
+internal_tm_skew(struct tm_node *n) {
 	if (n->level != n->left->level)
 		return n;
 	struct tm_node *left = n->left;
@@ -133,7 +136,7 @@ _tm_skew(struct tm_node *n) {
 }
 
 static struct tm_node *
-_tm_split(struct tm_node *n) {
+internal_tm_split(struct tm_node *n) {
 	if(n->right->right->level != n->level)
 		return n;
 	struct tm_node *right = n->right;
@@ -145,15 +148,16 @@ _tm_split(struct tm_node *n) {
 }
 
 static struct tm_node *
-_tm_insert(treemap *t, struct tm_node *n, struct tm_node *prealloc)
+internal_tm_insert(treemap *t, struct tm_node *n,
+                   struct tm_node *prealloc)
 {
 	if (n == t->bottom)
 		return prealloc;
 	int x = t->cmp(prealloc->pair->k, n->pair->k, t->cmp_aux);
 	if (x < 0)
-		n->left = _tm_insert(t, n->left, prealloc);
+		n->left = internal_tm_insert(t, n->left, prealloc);
 	else if (x > 0)
-		n->right = _tm_insert(t, n->right, prealloc);
+		n->right = internal_tm_insert(t, n->right, prealloc);
 	else
 	{
 		/* prealloc was for naught, but we'll use its value */
@@ -166,7 +170,7 @@ _tm_insert(treemap *t, struct tm_node *n, struct tm_node *prealloc)
 		free(prealloc);
 		return n;
 	}
-	return _tm_split(_tm_skew(n));
+	return internal_tm_split(internal_tm_skew(n));
 }
 
 bool
@@ -190,12 +194,12 @@ tm_insert(treemap *t, void *key, void *val)
 		.level = 1, .pair = p, .left = t->bottom, .right = t->bottom
 	};
 
-	t->root = _tm_insert(t, t->root, prealloc);
+	t->root = internal_tm_insert(t, t->root, prealloc);
 	return true;
 }
 
 static struct tm_node *
-_tm_remove(treemap *t, struct tm_node *n, void *key)
+internal_tm_remove(treemap *t, struct tm_node *n, void *key)
 {
 	if (n == t->bottom)
 		return n;
@@ -204,11 +208,11 @@ _tm_remove(treemap *t, struct tm_node *n, void *key)
 
 	t->last = n;
 	if (t->cmp(key, n->pair->k, t->cmp_aux) < 0)
-		n->left = _tm_remove(t, n->left, key);
+		n->left = internal_tm_remove(t, n->left, key);
 	else
 	{
 		t->deleted = n;
-		n->right = _tm_remove(t, n->right, key);
+		n->right = internal_tm_remove(t, n->right, key);
 	}
 
 	/* 2: At the bottom of the tree, remove element if present */
@@ -233,11 +237,11 @@ _tm_remove(treemap *t, struct tm_node *n, void *key)
 		n->level--;
 		if (n->right->level > n->level)
 			n->right->level = n->level;
-		n               = _tm_skew(n);
-		n->right        = _tm_skew(n->right);
-		n->right->right = _tm_skew(n->right->right);
-		n               = _tm_split(n);
-		n->right        = _tm_split(n->right);
+		n               = internal_tm_skew(n);
+		n->right        = internal_tm_skew(n->right);
+		n->right->right = internal_tm_skew(n->right->right);
+		n               = internal_tm_split(n);
+		n->right        = internal_tm_split(n->right);
 	}
 	return n;
 }
@@ -247,17 +251,17 @@ tm_remove(treemap *t, void *key)
 {
 	if (!t)
 		return false;
-	t->root = _tm_remove(t, t->root, key);
+	t->root = internal_tm_remove(t, t->root, key);
 	return true; // TODO: return false if key wasn't found
 }
 
 static void
-_tm_clear(treemap *t, struct tm_node *n)
+internal_tm_clear(treemap *t, struct tm_node *n)
 {
 	if (n == t->bottom)
 		return;
-	_tm_clear(t, n->left);
-	_tm_clear(t, n->right);
+	internal_tm_clear(t, n->left);
+	internal_tm_clear(t, n->right);
 	if (t->key_dtor)
 		t->key_dtor(n->pair->k, t->dtor_aux);
 	if (t->val_dtor)
@@ -271,7 +275,7 @@ tm_clear(treemap *t)
 {
 	if (!t)
 		return;
-	_tm_clear(t, t->root);
+	internal_tm_clear(t, t->root);
 	t->root = t->deleted = t->last = t->bottom;
 }
 

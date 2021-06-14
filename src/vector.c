@@ -10,7 +10,7 @@
 #ifdef NDEBUG
 	#define CHECK(x) (void)(x)
 #else
-	#define CHECK(x) _check(x)
+	#define CHECK(x) internal_check(x)
 #endif
 
 #define SWAP(x, y) do { void *swaptmp = (x); (x) = (y); (y) = swaptmp; } while (0)
@@ -25,7 +25,7 @@ struct vector
 };
 
 static void
-_check(const vector *v)
+internal_check(const vector *v)
 {
 	assert(v);
 	assert(v->capacity > 0);
@@ -251,8 +251,8 @@ v_find_last_index(const vector *v, const void *needle,
 
 /* from Bentley, https://www.youtube.com/watch?v=QvgYAQzg1z8 */
 static void
-_quicksort(vector *v, size_t lo, size_t hi,
-           comparator *cmp, void *aux)
+internal_quicksort(vector *v, size_t lo, size_t hi,
+                   comparator *cmp, void *aux)
 {
 	size_t i, m = lo;
 	if (lo >= hi)
@@ -266,8 +266,8 @@ _quicksort(vector *v, size_t lo, size_t hi,
 	SWAP(v->elts[lo], v->elts[m]);
 
 	if (m > 0) /* avoid wrapping size_t */
-		_quicksort(v, lo, m-1, cmp, aux);
-	_quicksort(v, m+1, hi, cmp, aux);
+		internal_quicksort(v, lo, m-1, cmp, aux);
+	internal_quicksort(v, m+1, hi, cmp, aux);
 }
 
 bool
@@ -275,7 +275,7 @@ v_sort(vector *v, comparator *cmp, void *aux)
 {
 	if (!v || !cmp)
 		return false;
-	_quicksort(v, 0, v->length-1, cmp, aux);
+	internal_quicksort(v, 0, v->length-1, cmp, aux);
 
 	CHECK(v);
 	return true;
