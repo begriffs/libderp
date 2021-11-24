@@ -1,3 +1,4 @@
+#include "derp/common.h"
 #include "derp/treemap.h"
 
 #include <assert.h>
@@ -6,27 +7,15 @@
 
 int ivals[] = {0,1,2,3,4,5,6,7,8,9};
 
-int scmp(const void *a, const void *b, void *aux)
-{
-	(void)aux;
-	return strcmp(a, b);
-}
-
 int icmp(const void *a, const void *b, void *aux)
 {
 	(void)aux;
 	return *(int*)a - *(int*)b;
 }
 
-void myfree(void *a, void *aux)
-{
-	(void)aux;
-	free(a);
-}
-
 int main(void)
 {
-	treemap *t = tm_new(scmp, NULL);
+	treemap *t = tm_new(derp_strcmp, NULL);
 	assert(tm_length(t) == 0);
 	assert(tm_is_empty(t));
 
@@ -74,7 +63,7 @@ int main(void)
 	tm_clear(t);
 
 	/* test for memory leak */
-	tm_dtor(t, myfree, myfree, NULL);
+	tm_dtor(t, derp_free, derp_free, NULL);
 	char *key = malloc(5),
 		 *dupkey = malloc(5),
 		 *otherkey = malloc(3);

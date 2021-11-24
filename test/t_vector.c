@@ -1,3 +1,4 @@
+#include "derp/common.h"
 #include "derp/vector.h"
 
 #include <assert.h>
@@ -10,12 +11,6 @@ int cmpint(const void *a, const void *b, void *aux)
 {
 	(void)aux;
 	return *(int*)a - *(int*)b;
-}
-
-void myfree(void *a, void *aux)
-{
-	(void)aux;
-	free(a);
 }
 
 int main(void)
@@ -100,7 +95,7 @@ int main(void)
 
 	v_clear(vint);
 	/* test for memory leak */
-	v_dtor(vint, myfree, NULL);
+	v_dtor(vint, derp_free, NULL);
 	int *life = malloc(sizeof *life);
 	*life = 42;
 	v_append(vint, life);

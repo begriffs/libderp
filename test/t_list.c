@@ -1,3 +1,4 @@
+#include "derp/common.h"
 #include "derp/list.h"
 
 #include <assert.h>
@@ -9,12 +10,6 @@ int cmpint(const void *a, const void *b, void *aux)
 {
 	(void)aux;
 	return *(int*)a - *(int*)b;
-}
-
-void myfree(void *a, void *aux)
-{
-	(void)aux;
-	free(a);
 }
 
 int ivals[] = {0,1,2,3,4,5,6,7,8,9};
@@ -94,7 +89,7 @@ int main(void)
 	assert(*(int*)l_remove_last(l) == 8);
 
 	l_clear(l);
-	l_dtor(l, myfree, NULL);
+	l_dtor(l, derp_free, NULL);
 	int *life = malloc(sizeof *life);
 	*life = 42;
 	l_append(l, life);

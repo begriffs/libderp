@@ -5,7 +5,7 @@ CFLAGS = -Iinclude -fPIC
 
 MAKEFILES = Makefile build/$(VARIANT)/extra.mk config.mk
 
-OBJS = build/$(VARIANT)/vector.o build/$(VARIANT)/list.o build/$(VARIANT)/hashmap.o build/$(VARIANT)/treemap.o
+OBJS = build/$(VARIANT)/common.o build/$(VARIANT)/vector.o build/$(VARIANT)/list.o build/$(VARIANT)/hashmap.o build/$(VARIANT)/treemap.o
 
 .SUFFIXES :
 
@@ -22,6 +22,9 @@ build/$(VARIANT)/libderp.${SO} : $(OBJS) VERSION
 
 tests : build/$(VARIANT)/test/t_vector build/$(VARIANT)/test/t_list build/$(VARIANT)/test/t_hashmap build/$(VARIANT)/test/t_treemap
 
+build/$(VARIANT)/common.o : src/common.c include/derp/common.h
+	$(CC) $(CFLAGS) -o $@ -c src/common.c
+
 build/$(VARIANT)/vector.o : src/vector.c include/derp/vector.h include/derp/common.h $(MAKEFILES)
 	$(CC) $(CFLAGS) -o $@ -c src/vector.c
 
@@ -34,14 +37,14 @@ build/$(VARIANT)/hashmap.o : src/hashmap.c include/derp/hashmap.h include/derp/l
 build/$(VARIANT)/treemap.o : src/treemap.c include/derp/treemap.h include/derp/list.h include/derp/common.h $(MAKEFILES)
 	$(CC) $(CFLAGS) -o $@ -c src/treemap.c
 
-build/$(VARIANT)/test/t_vector : build/$(VARIANT)/vector.o test/t_vector.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ build/$(VARIANT)/vector.o test/t_vector.c $(LDLIBS)
+build/$(VARIANT)/test/t_vector : build/$(VARIANT)/common.o build/$(VARIANT)/vector.o test/t_vector.c
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ build/$(VARIANT)/common.o build/$(VARIANT)/vector.o test/t_vector.c $(LDLIBS)
 
-build/$(VARIANT)/test/t_list : build/$(VARIANT)/list.o test/t_list.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ build/$(VARIANT)/list.o test/t_list.c $(LDLIBS)
+build/$(VARIANT)/test/t_list : build/$(VARIANT)/common.o build/$(VARIANT)/list.o test/t_list.c
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ build/$(VARIANT)/common.o build/$(VARIANT)/list.o test/t_list.c $(LDLIBS)
 
-build/$(VARIANT)/test/t_hashmap : build/$(VARIANT)/hashmap.o build/$(VARIANT)/list.o test/t_hashmap.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ build/$(VARIANT)/hashmap.o build/$(VARIANT)/list.o test/t_hashmap.c $(LDLIBS)
+build/$(VARIANT)/test/t_hashmap : build/$(VARIANT)/common.o build/$(VARIANT)/hashmap.o build/$(VARIANT)/list.o test/t_hashmap.c
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ build/$(VARIANT)/common.o build/$(VARIANT)/hashmap.o build/$(VARIANT)/list.o test/t_hashmap.c $(LDLIBS)
 
-build/$(VARIANT)/test/t_treemap : build/$(VARIANT)/treemap.o build/$(VARIANT)/list.o test/t_treemap.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ build/$(VARIANT)/treemap.o build/$(VARIANT)/list.o test/t_treemap.c $(LDLIBS)
+build/$(VARIANT)/test/t_treemap : build/$(VARIANT)/common.o build/$(VARIANT)/treemap.o build/$(VARIANT)/list.o test/t_treemap.c
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ build/$(VARIANT)/common.o build/$(VARIANT)/treemap.o build/$(VARIANT)/list.o test/t_treemap.c $(LDLIBS)

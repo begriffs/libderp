@@ -1,3 +1,4 @@
+#include "derp/common.h"
 #include "derp/hashmap.h"
 
 #include <assert.h>
@@ -18,21 +19,9 @@ unsigned long djb2hash(const void *x)
 	return hash;
 }
 
-int scmp(const void *a, const void *b, void *aux)
-{
-	(void)aux;
-	return strcmp(a, b);
-}
-
-void myfree(void *a, void *aux)
-{
-	(void)aux;
-	free(a);
-}
-
 int main(void)
 {
-	hashmap *h = hm_new(0, djb2hash, scmp, NULL);
+	hashmap *h = hm_new(0, djb2hash, derp_strcmp, NULL);
 	hm_iter *i;
 	assert(hm_length(h) == 0);
 	assert(hm_is_empty(h));
@@ -75,7 +64,7 @@ int main(void)
 	assert(!hm_at(h, "zero"));
 
 	/* test for memory leak */
-	hm_dtor(h, myfree, myfree, NULL);
+	hm_dtor(h, derp_free, derp_free, NULL);
 	char *key = malloc(5);
 	int  *val1 = malloc(sizeof *val1),
 	     *val2 = malloc(sizeof *val2);
@@ -88,7 +77,7 @@ int main(void)
 	hm_free(h);
 
 	/* test iterator when hashmap has only one bucket */
-	hashmap *h1 = hm_new(1, djb2hash, scmp, NULL);
+	hashmap *h1 = hm_new(1, djb2hash, derp_strcmp, NULL);
 	assert(hm_is_empty(h1));
 	hm_insert(h1, "zero", ivals);
 	hm_insert(h1, "one", ivals+1);
