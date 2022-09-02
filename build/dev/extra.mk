@@ -1,4 +1,3 @@
 CC = clang
-CFLAGS += -std=c99 -pedantic -DMALLOC_STATS \
-          -Wall -Wextra -Werror -O0 -g # \
-          # -fprofile-instr-generate -fcoverage-mapping 
+CFLAGS += -std=c99 -pedantic -Wall -Wextra -Werror -O0 -g --coverage
+LDFLAGS += -fsanitize=address -fsanitize=undefined -fsanitize=leak
