@@ -71,11 +71,7 @@ cc `pkg-config --cflags --libs-only-L libderp` \
 ```
 
 To link statically against the library, change the pkg-config name `libderp` to
-`libderp-static`. This library uses position-independent code (PIC) for its
-static library. Mostly out of laziness in the build process, but it also allows
-shared libraries to link a static copy of libderp inside too. The disadvantage
-is that PIC causes a performance hit, especially on some older CPU
-architectures.
+`libderp-static`.
 
 #### Installing runtime assets (for the loader)
 
@@ -123,4 +119,16 @@ To see test coverage for a data structure, run the cov script:
 
 ```sh
 ./build/dev/test/cov hashmap
+```
+
+### Cross compiling
+
+The macros `CC`, `AR` and `EXTRA_CFLAGS` can be used to cross-compile for other
+architectures. For instance, below is how to compile a static library for ARM
+Cortex M4 with hardware floating point.
+
+```sh
+make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar \
+     EXTRA_CFLAGS="-mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16" \
+     build/release/libderp.a
 ```
