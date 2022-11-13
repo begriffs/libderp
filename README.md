@@ -14,7 +14,7 @@ Why you might avoid it
 
 * containers use void pointers, e.g. no vector of ints
 * pedestrian algorithms, not cutting edge
-* hard-coded to use malloc/free
+* hard-coded to use malloc/free/realloc
 * not (yet) thread safe
 
 ### Installation
@@ -124,11 +124,15 @@ To see test coverage for a data structure, run the cov script:
 ### Cross compiling
 
 The macros `CC`, `AR` and `EXTRA_CFLAGS` can be used to cross-compile for other
-architectures. For instance, below is how to compile a static library for ARM
-Cortex M4 with hardware floating point.
+architectures. For instance, here is how to compile a static library for ARM
+Cortex M4 with hardware floating point support:
 
 ```sh
 make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar \
      EXTRA_CFLAGS="-mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16" \
      build/release/libderp.a
 ```
+
+Note that the library uses the dynamic memory allocation functions malloc,
+free, and realloc, as well as the functions memmove and memset. Thus it needs a
+C standard library implementation (like newlib) to function.
