@@ -1,5 +1,12 @@
 # Libderp changelog
 
+## Unreleased
+
+### Added
+
+* Support for alternate memory allocation functions
+* Memory leak checking in tests with the Boehm GC
+
 ## 1.0.0
 
 ### Added

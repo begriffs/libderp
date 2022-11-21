@@ -9,16 +9,32 @@ cat > config.mk <<-EOF
 	MINOR=\`(cut -d . -f 2 VERSION)\`
 EOF
 
-# mac...think different :(
+printf "Detecting shared object style: "
 if [ "$(uname -s)" = Darwin ]
 then
+	echo ".dylib"
 	cat >> config.mk <<-EOF
 		SO = dylib
 		SOFLAGS = -dynamiclib -install_name "libderp.\${MAJOR}.dylib" -current_version \${VER} -compatibility_version \${MAJOR}.\${MINOR}.0
 	EOF
 else
+	echo ".so"
 	cat >> config.mk <<-EOF
 		SO = so
 		SOFLAGS = -shared -Wl,-soname,libderp.so.\${MAJOR}.\${MINOR}
 	EOF
+fi
+
+printf "Detecting Boehm GC for leak tests... "
+if pkg-config bdw-gc
+then
+	echo "found"
+	cat >> config.mk <<-EOF
+	EXTRA_DEV_CFLAGS  += -DHAVE_BOEHM_GC $(pkg-config --cflags bdw-gc)
+	EXTRA_DEV_LDFLAGS += $(pkg-config --libs-only-L bdw-gc)
+	EXTRA_DEV_LDLIBS  += $(pkg-config --libs-only-l bdw-gc)
+	EOF
+else
+	echo "not found\n"
+	echo "Test suite won't include leak checks"
 fi

@@ -17,6 +17,8 @@ OBJS_PIC = build/$(VARIANT)/pic/common.o \
 		   build/$(VARIANT)/pic/hashmap.o \
 		   build/$(VARIANT)/pic/treemap.o
 
+COMMON_HEADERS = include/derp/common.h include/internal/alloc.h
+
 .SUFFIXES :
 
 include config.mk
@@ -32,29 +34,29 @@ build/$(VARIANT)/libderp.${SO} : $(OBJS_PIC) VERSION
 
 tests : build/$(VARIANT)/test/t_vector build/$(VARIANT)/test/t_list build/$(VARIANT)/test/t_hashmap build/$(VARIANT)/test/t_treemap
 
-build/$(VARIANT)/common.o : src/common.c include/derp/common.h
+build/$(VARIANT)/common.o : src/common.c $(COMMON_HEADERS) $(MAKEFILES)
 	$(CC) $(CFLAGS) -o $@ -c src/common.c
-build/$(VARIANT)/pic/common.o : src/common.c include/derp/common.h
+build/$(VARIANT)/pic/common.o : src/common.c $(COMMON_HEADERS) $(MAKEFILES)
 	$(CC) $(CFLAGS) -fPIC -o $@ -c src/common.c
 
-build/$(VARIANT)/vector.o : src/vector.c include/derp/vector.h include/derp/common.h $(MAKEFILES)
+build/$(VARIANT)/vector.o : src/vector.c include/derp/vector.h $(COMMON_HEADERS) $(MAKEFILES)
 	$(CC) $(CFLAGS) -o $@ -c src/vector.c
-build/$(VARIANT)/pic/vector.o : src/vector.c include/derp/vector.h include/derp/common.h $(MAKEFILES)
+build/$(VARIANT)/pic/vector.o : src/vector.c include/derp/vector.h $(COMMON_HEADERS) $(MAKEFILES)
 	$(CC) $(CFLAGS) -fPIC -o $@ -c src/vector.c
 
-build/$(VARIANT)/list.o : src/list.c include/derp/list.h include/derp/common.h $(MAKEFILES)
+build/$(VARIANT)/list.o : src/list.c include/derp/list.h $(COMMON_HEADERS) $(MAKEFILES)
 	$(CC) $(CFLAGS) -o $@ -c src/list.c
-build/$(VARIANT)/pic/list.o : src/list.c include/derp/list.h include/derp/common.h $(MAKEFILES)
+build/$(VARIANT)/pic/list.o : src/list.c include/derp/list.h $(COMMON_HEADERS) $(MAKEFILES)
 	$(CC) $(CFLAGS) -fPIC -o $@ -c src/list.c
 
-build/$(VARIANT)/hashmap.o : src/hashmap.c include/derp/hashmap.h include/derp/list.h include/derp/common.h $(MAKEFILES)
+build/$(VARIANT)/hashmap.o : src/hashmap.c include/derp/hashmap.h include/derp/list.h $(COMMON_HEADERS) $(MAKEFILES)
 	$(CC) $(CFLAGS) -o $@ -c src/hashmap.c
-build/$(VARIANT)/pic/hashmap.o : src/hashmap.c include/derp/hashmap.h include/derp/list.h include/derp/common.h $(MAKEFILES)
+build/$(VARIANT)/pic/hashmap.o : src/hashmap.c include/derp/hashmap.h include/derp/list.h $(COMMON_HEADERS) $(MAKEFILES)
 	$(CC) $(CFLAGS) -fPIC -o $@ -c src/hashmap.c
 
-build/$(VARIANT)/treemap.o : src/treemap.c include/derp/treemap.h include/derp/list.h include/derp/common.h $(MAKEFILES)
+build/$(VARIANT)/treemap.o : src/treemap.c include/derp/treemap.h include/derp/list.h $(COMMON_HEADERS) $(MAKEFILES)
 	$(CC) $(CFLAGS) -o $@ -c src/treemap.c
-build/$(VARIANT)/pic/treemap.o : src/treemap.c include/derp/treemap.h include/derp/list.h include/derp/common.h $(MAKEFILES)
+build/$(VARIANT)/pic/treemap.o : src/treemap.c include/derp/treemap.h include/derp/list.h $(COMMON_HEADERS) $(MAKEFILES)
 	$(CC) $(CFLAGS) -fPIC -o $@ -c src/treemap.c
 
 build/$(VARIANT)/test/t_vector : build/$(VARIANT)/common.o build/$(VARIANT)/vector.o test/t_vector.c

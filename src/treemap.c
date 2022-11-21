@@ -1,7 +1,6 @@
+#include "internal/alloc.h"
 #include "derp/list.h"
 #include "derp/treemap.h"
-
-#include <stdlib.h>
 
 /* AA (Arne Andersson) Tree:
  * Balanced Search Trees Made Simple
@@ -38,12 +37,12 @@ struct tm_iter
 treemap *
 tm_new(comparator *cmp, void *cmp_aux)
 {
-	treemap *t = malloc(sizeof *t);
-	struct tm_node *bottom = malloc(sizeof *bottom);
+	treemap *t = internal_malloc(sizeof *t);
+	struct tm_node *bottom = internal_malloc(sizeof *bottom);
 	if (!t || !bottom)
 	{
-		free(t);
-		free(bottom);
+		internal_free(t);
+		internal_free(bottom);
 		return NULL;
 	}
 	/* sentinel living below all leaves */
@@ -67,8 +66,8 @@ tm_free(treemap *t)
 	if (!t)
 		return;
 	tm_clear(t);
-	free(t->bottom);
-	free(t);
+	internal_free(t->bottom);
+	internal_free(t);
 }
 
 void
@@ -166,8 +165,8 @@ internal_tm_insert(treemap *t, struct tm_node *n,
 		if (n->pair->k != prealloc->pair->k && t->key_dtor)
 			t->key_dtor(n->pair->k, t->dtor_aux);
 		*n->pair = *prealloc->pair;
-		free(prealloc->pair);
-		free(prealloc);
+		internal_free(prealloc->pair);
+		internal_free(prealloc);
 		return n;
 	}
 	return internal_tm_split(internal_tm_skew(n));
@@ -181,12 +180,12 @@ tm_insert(treemap *t, void *key, void *val)
 	/* attempt the malloc before potentially splitting
 	 * and skewing the tree, so the insertion can be a
 	 * no-op on failure */
-	struct tm_node *prealloc = malloc(sizeof *prealloc);
-	struct map_pair *p = malloc(sizeof *p);
+	struct tm_node *prealloc = internal_malloc(sizeof *prealloc);
+	struct map_pair *p = internal_malloc(sizeof *p);
 	if (!prealloc || !p)
 	{
-		free(prealloc);
-		free(p);
+		internal_free(prealloc);
+		internal_free(p);
 		return false;
 	}
 	*p = (struct map_pair){.k = key, .v = val};
@@ -229,8 +228,8 @@ internal_tm_remove(treemap *t, struct tm_node *n, void *key)
 		t->deleted = t->bottom;
 		n = n->right;
 
-		free(t->last->pair);
-		free(t->last);
+		internal_free(t->last->pair);
+		internal_free(t->last);
 	} /* 3: on the way back up, rebalance */
 	else if (n->left->level  < n->level-1 ||
 	         n->right->level < n->level-1) {
@@ -266,8 +265,8 @@ internal_tm_clear(treemap *t, struct tm_node *n)
 		t->key_dtor(n->pair->k, t->dtor_aux);
 	if (t->val_dtor)
 		t->val_dtor(n->pair->v, t->dtor_aux);
-	free(n->pair);
-	free(n);
+	internal_free(n->pair);
+	internal_free(n);
 }
 
 void
@@ -284,11 +283,11 @@ tm_iter_begin(treemap *t)
 {
 	if (!t)
 		return NULL;
-	struct tm_iter *i = malloc(sizeof *i);
+	struct tm_iter *i = internal_malloc(sizeof *i);
 	list *l = l_new();
 	if (!i || !l)
 	{
-		free(i);
+		internal_free(i);
 		l_free(l);
 		return NULL;
 	}
@@ -324,5 +323,5 @@ tm_iter_free(tm_iter *i)
 {
 	if (i)
 		l_free(i->stack);
-	free(i);
+	internal_free(i);
 }

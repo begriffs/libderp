@@ -1,9 +1,13 @@
-#include "derp/common.h"
-#include "derp/vector.h"
-
 #include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
+
+#include "derp/common.h"
+#include "derp/vector.h"
+
+#ifdef HAVE_BOEHM_GC
+#include <gc/leak_detector.h>
+#endif
 
 #define ARRAY_LEN(a) (sizeof(a)/sizeof(*a))
 
@@ -15,6 +19,13 @@ int cmpint(const void *a, const void *b, void *aux)
 
 int main(void)
 {
+#ifdef HAVE_BOEHM_GC
+	GC_set_find_leak(1);
+	derp_use_alloc_funcs(
+		GC_debug_malloc_replacement,
+		GC_debug_realloc_replacement, GC_debug_free);
+#endif
+
 	int ivals[] =  {0,1,2,3,4,5,6,7,8,9},
 	    ivals2[] = {10,11,12,13,14,15,16,17,18,19};
 	size_t i;
@@ -102,5 +113,8 @@ int main(void)
 
 	v_free(vint);
 
+#ifdef HAVE_BOEHM_GC
+	CHECK_LEAKS();
+#endif
 	return 0;
 }

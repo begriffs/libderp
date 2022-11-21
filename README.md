@@ -14,7 +14,6 @@ Why you might avoid it
 
 * containers use void pointers, e.g. no vector of ints
 * pedestrian algorithms, not cutting edge
-* hard-coded to use malloc/free/realloc
 * not (yet) thread safe
 
 ### Installation
@@ -85,13 +84,23 @@ To install the shared library for loading, use the `install.sh` script.
 This copies the shared library, and creates symbolic links to match the soname
 that applications are built against.
 
+### Using a different memory allocator
+
+By default, libderp uses memory allocation from the C standard library.
+However, if you want it to use a different set of functions, specify them with
+a call to `derp_use_alloc_funcs()` prior to any other libderp API calls:
+
+```c
+/* for instance, Boehm GC: */
+derp_use_alloc_funcs(GC_malloc, GC_realloc, GC_free);
+```
 ### Contributing to Libderp
 
-To build in `build/dev` with warnings, profiling, debugging information, and
-code coverage data, use the "dev" variant:
+To build in `build/dev` with warnings, leak checks, and code coverage data, use
+the "dev" variant:
 
 ```sh
-# requires clang specifically
+# requires clang
 make VARIANT=dev
 ```
 
@@ -108,12 +117,9 @@ make VARIANT=dev tests
 ./build/dev/test/run
 ```
 
-On platforms where Clang supports memory leak checks, you can activate them
-like this:
-
-```sh
-ASAN_OPTIONS=detect_leaks=1 ./build/dev/test/run
-```
+The dev variant uses the Boehm garbage collector, if available, [for leak
+detection](https://www.hboehm.info/gc/leak.html). Boehm is available on more
+platforms than the Clang address sanitizer is.
 
 To see test coverage for a data structure, run the cov script:
 
@@ -121,7 +127,9 @@ To see test coverage for a data structure, run the cov script:
 ./build/dev/test/cov hashmap
 ```
 
-### Cross compiling
+### Customizing the build
+
+#### Cross compiling
 
 The macros `CC`, `AR` and `EXTRA_CFLAGS` can be used to cross-compile for other
 architectures. For instance, here is how to compile a static library for ARM

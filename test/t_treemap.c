@@ -1,9 +1,13 @@
-#include "derp/common.h"
-#include "derp/treemap.h"
-
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "derp/common.h"
+#include "derp/treemap.h"
+
+#ifdef HAVE_BOEHM_GC
+#include <gc/leak_detector.h>
+#endif
 
 int ivals[] = {0,1,2,3,4,5,6,7,8,9};
 
@@ -15,6 +19,13 @@ int icmp(const void *a, const void *b, void *aux)
 
 int main(void)
 {
+#ifdef HAVE_BOEHM_GC
+	GC_set_find_leak(1);
+	derp_use_alloc_funcs(
+		GC_debug_malloc_replacement,
+		GC_debug_realloc_replacement, GC_debug_free);
+#endif
+
 	treemap *t = tm_new(derp_strcmp, NULL);
 	assert(tm_length(t) == 0);
 	assert(tm_is_empty(t));
@@ -115,5 +126,8 @@ int main(void)
 
 	tm_free(t2);
 
+#ifdef HAVE_BOEHM_GC
+	CHECK_LEAKS();
+#endif
 	return 0;
 }

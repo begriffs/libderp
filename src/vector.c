@@ -1,9 +1,10 @@
-#include "derp/vector.h"
-
 #include <assert.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
+
+#include "internal/alloc.h"
+#include "derp/vector.h"
+#include "derp/common.h"
 
 #define INITIAL_CAPACITY 64
 
@@ -40,12 +41,12 @@ internal_check(const vector *v)
 vector *
 v_new(void)
 {
-	vector *v   = malloc(sizeof *v);
-	void **elts = malloc(INITIAL_CAPACITY * sizeof *elts);
+	vector *v   = internal_malloc(sizeof *v);
+	void **elts = internal_malloc(INITIAL_CAPACITY * sizeof *elts);
 	if (!v || !elts)
 	{
-		free(v);
-		free(elts);
+		internal_free(v);
+		internal_free(elts);
 		return NULL;
 	}
 	*v = (vector){
@@ -71,8 +72,8 @@ v_free(vector *v)
 	if (!v)
 		return;
 	v_clear(v);
-	free(v->elts);
-	free(v);
+	internal_free(v->elts);
+	internal_free(v);
 }
 
 size_t
@@ -121,7 +122,7 @@ v_reserve_capacity(vector *v, size_t desired)
 		n = SIZE_MAX;
 	if (n > SIZE_MAX / (sizeof *v->elts))
 		return v->capacity; /* realloc multiplication would overflow */
-	void **enlarged = realloc(v->elts, n * sizeof *v->elts);
+	void **enlarged = internal_realloc(v->elts, n * sizeof *v->elts);
 	if (!enlarged)
 		return v->capacity;
 	v->elts = enlarged;
