@@ -1,8 +1,8 @@
+#include <assert.h>
+
+#include "internal/alloc.h"
 #include "derp/hashmap.h"
 #include "derp/list.h"
-
-#include <assert.h>
-#include <stdlib.h>
 
 #define DEFAULT_CAPACITY 64
 
@@ -35,7 +35,7 @@ internal_hm_free_pair(void *x, void *aux)
 		h->key_dtor(p->k, h->dtor_aux);
 	if (h->val_dtor)
 		h->val_dtor(p->v, h->dtor_aux);
-	free(x);
+	internal_free(x);
 }
 
 hashmap *
@@ -46,12 +46,12 @@ hm_new(size_t capacity, hashfn *hash,
 		return NULL;
 	if (capacity == 0)
 		capacity = DEFAULT_CAPACITY;
-	hashmap *h = malloc(sizeof *h);
+	hashmap *h = internal_malloc(sizeof *h);
 	if (!h)
 		goto fail;
 	*h = (hashmap){
 		.capacity = capacity,
-		.buckets = malloc(capacity * sizeof *h->buckets),
+		.buckets = internal_malloc(capacity * sizeof *h->buckets),
 		.hash = hash,
 		.cmp = cmp,
 		.cmp_aux = cmp_aux
@@ -95,9 +95,9 @@ hm_free(hashmap *h)
 	{
 		for (size_t i = 0; i < h->capacity; i++)
 			l_free(h->buckets[i]);
-		free(h->buckets);
+		internal_free(h->buckets);
 	}
-	free(h);
+	internal_free(h);
 }
 
 size_t
@@ -154,7 +154,7 @@ hm_insert(hashmap *h, void *key, void *val)
 	}
 	else
 	{
-		struct map_pair *p = malloc(sizeof *p);
+		struct map_pair *p = internal_malloc(sizeof *p);
 		if (!p)
 			return false;
 		*p = (struct map_pair){.k = key, .v = val};
@@ -191,7 +191,7 @@ hm_iter_begin(hashmap *h)
 {
 	if (!h)
 		return NULL;
-	hm_iter *i = malloc(sizeof *i);
+	hm_iter *i = internal_malloc(sizeof *i);
 	if (!i)
 		return NULL;
 	*i = (hm_iter){.h = h};
@@ -215,5 +215,5 @@ hm_iter_next(hm_iter *i)
 void
 hm_iter_free(hm_iter *i)
 {
-	free(i);
+	internal_free(i);
 }

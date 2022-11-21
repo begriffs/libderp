@@ -1,9 +1,10 @@
-#include "derp/common.h"
-#include "derp/vector.h"
-
 #include <assert.h>
 #include <stdint.h>
-#include <stdlib.h>
+
+#include <gc/gc.h>
+
+#include "derp/common.h"
+#include "derp/vector.h"
 
 #define ARRAY_LEN(a) (sizeof(a)/sizeof(*a))
 
@@ -15,6 +16,8 @@ int cmpint(const void *a, const void *b, void *aux)
 
 int main(void)
 {
+	GC_set_find_leak(1);
+
 	int ivals[] =  {0,1,2,3,4,5,6,7,8,9},
 	    ivals2[] = {10,11,12,13,14,15,16,17,18,19};
 	size_t i;
@@ -96,11 +99,12 @@ int main(void)
 	v_clear(vint);
 	/* test for memory leak */
 	v_dtor(vint, derp_free, NULL);
-	int *life = malloc(sizeof *life);
+	int *life = GC_MALLOC(sizeof *life);
 	*life = 42;
 	v_append(vint, life);
 
 	v_free(vint);
 
+	GC_gcollect();
 	return 0;
 }

@@ -1,7 +1,7 @@
-#include "derp/common.h"
-
-#include <stdlib.h>
 #include <string.h>
+
+#include "internal/alloc.h"
+#include "derp/common.h"
 
 int derp_strcmp(const void *a, const void *b, void *aux)
 {
@@ -12,5 +12,5 @@ int derp_strcmp(const void *a, const void *b, void *aux)
 void derp_free(void *a, void *aux)
 {
 	(void)aux;
-	free(a);
+	internal_free(a);
 }

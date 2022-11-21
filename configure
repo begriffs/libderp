@@ -9,16 +9,33 @@ cat > config.mk <<-EOF
 	MINOR=\`(cut -d . -f 2 VERSION)\`
 EOF
 
-# mac...think different :(
+printf "Detecting shared object style: "
 if [ "$(uname -s)" = Darwin ]
 then
+	echo ".dylib"
 	cat >> config.mk <<-EOF
 		SO = dylib
 		SOFLAGS = -dynamiclib -install_name "libderp.\${MAJOR}.dylib" -current_version \${VER} -compatibility_version \${MAJOR}.\${MINOR}.0
 	EOF
 else
+	echo ".so"
 	cat >> config.mk <<-EOF
 		SO = so
 		SOFLAGS = -shared -Wl,-soname,libderp.so.\${MAJOR}.\${MINOR}
+	EOF
+fi
+
+printf "Detecting Boehm GC for dev variant... "
+GCLIB=`find /usr/local /opt -name 'libgc.*' -exec dirname {} \; 2>/dev/null | head -n 1`
+GCINC=`find /usr/local /opt -name 'gc.h' -exec dirname {} \; 2>/dev/null | head -n 1`
+
+if [ -z "$GCLIB" -o -z "$GCINC" ]; then
+	echo "not found\n"
+	echo "OK to compile release variant, but not dev variant"
+else
+	echo "$GCLIB"
+	cat >> config.mk <<-EOF
+	CFLAGS  += -I$GCINC/..
+	LDFLAGS += -L$GCLIB
 	EOF
 fi

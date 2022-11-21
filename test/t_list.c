@@ -1,8 +1,9 @@
+#include <assert.h>
+
+#include <gc/gc.h>
+
 #include "derp/common.h"
 #include "derp/list.h"
-
-#include <assert.h>
-#include <stdlib.h>
 
 #define ARRAY_LEN(a) (sizeof(a)/sizeof(*a))
 
@@ -16,6 +17,8 @@ int ivals[] = {0,1,2,3,4,5,6,7,8,9};
 
 int main(void)
 {
+	GC_set_find_leak(1);
+
 	list *l = l_new();
 
 	assert(l_length(l) == 0);
@@ -90,11 +93,12 @@ int main(void)
 
 	l_clear(l);
 	l_dtor(l, derp_free, NULL);
-	int *life = malloc(sizeof *life);
+	int *life = GC_MALLOC(sizeof *life);
 	*life = 42;
 	l_append(l, life);
 
 	l_free(l);
 
+	GC_gcollect();
 	return 0;
 }

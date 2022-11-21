@@ -1,9 +1,11 @@
-#include "derp/common.h"
-#include "derp/hashmap.h"
-
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <gc/gc.h>
+
+#include "derp/common.h"
+#include "derp/hashmap.h"
 
 int ivals[] = {0,1,2,3,4,5,6,7,8,9};
 
@@ -21,6 +23,8 @@ unsigned long djb2hash(const void *x)
 
 int main(void)
 {
+	GC_set_find_leak(1);
+
 	hashmap *h = hm_new(0, djb2hash, derp_strcmp, NULL);
 	hm_iter *i;
 	assert(hm_length(h) == 0);
@@ -65,9 +69,9 @@ int main(void)
 
 	/* test for memory leak */
 	hm_dtor(h, derp_free, derp_free, NULL);
-	char *key = malloc(5);
-	int  *val1 = malloc(sizeof *val1),
-	     *val2 = malloc(sizeof *val2);
+	char *key = GC_MALLOC(5);
+	int  *val1 = GC_MALLOC(sizeof *val1),
+	     *val2 = GC_MALLOC(sizeof *val2);
 	strcpy(key, "life");
 	*val1 = 42;
 	*val2 = 13;
@@ -88,5 +92,6 @@ int main(void)
 	hm_iter_free(i);
 	hm_free(h1);
 
+	GC_gcollect();
 	return 0;
 }

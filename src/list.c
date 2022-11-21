@@ -1,7 +1,7 @@
-#include "derp/list.h"
-
 #include <assert.h>
-#include <stdlib.h>
+
+#include "internal/alloc.h"
+#include "derp/list.h"
 
 #ifdef NDEBUG
 	#define CHECK(x) (void)(x)
@@ -27,7 +27,7 @@ static list_item * internal_sort(list_item *,
 list *
 l_new(void)
 {
-	list *l = malloc(sizeof *l);
+	list *l = internal_malloc(sizeof *l);
 	if (!l)
 		return NULL;
 	*l = (list){0};
@@ -48,7 +48,7 @@ void
 l_free(list *l)
 {
 	l_clear(l);
-	free(l);
+	internal_free(l);
 }
 
 size_t
@@ -144,7 +144,7 @@ l_remove(list *l, list_item *li)
 	if (li == l->tail)
 		l->tail = p;
 	l->length--;
-	free(li);
+	internal_free(li);
 
 	CHECK(l);
 	return true;
@@ -157,7 +157,7 @@ l_insert(list *l, list_item *pos, void *data)
 		return false;
 	if (!pos)
 		pos = l->head;
-	list_item *li = malloc(sizeof *li);
+	list_item *li = internal_malloc(sizeof *li);
 	if (!li)
 		return false;
 	*li = (list_item){
@@ -189,7 +189,7 @@ l_insert_after(list *l, list_item *pos, void *data)
 		return false;
 	if (!pos)
 		pos = l->tail;
-	list_item *li = malloc(sizeof *li);
+	list_item *li = internal_malloc(sizeof *li);
 	if (!li)
 		return false;
 	*li = (list_item){
@@ -225,7 +225,7 @@ l_clear(list *l)
 		list_item *n = li->next;
 		if (l->elt_dtor)
 			l->elt_dtor(li->data, l->dtor_aux);
-		free(li);
+		internal_free(li);
 		li = n;
 	}
 	l->head = l->tail = NULL;

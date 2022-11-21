@@ -1,9 +1,10 @@
+#include <assert.h>
+#include <string.h>
+
+#include <gc/gc.h>
+
 #include "derp/common.h"
 #include "derp/treemap.h"
-
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
 
 int ivals[] = {0,1,2,3,4,5,6,7,8,9};
 
@@ -15,6 +16,8 @@ int icmp(const void *a, const void *b, void *aux)
 
 int main(void)
 {
+	GC_set_find_leak(1);
+
 	treemap *t = tm_new(derp_strcmp, NULL);
 	assert(tm_length(t) == 0);
 	assert(tm_is_empty(t));
@@ -64,12 +67,12 @@ int main(void)
 
 	/* test for memory leak */
 	tm_dtor(t, derp_free, derp_free, NULL);
-	char *key = malloc(5),
-		 *dupkey = malloc(5),
-		 *otherkey = malloc(3);
-	int  *val1 = malloc(sizeof *val1),
-	     *val2 = malloc(sizeof *val2),
-	     *val3 = malloc(sizeof *val3);
+	char *key = GC_MALLOC(5),
+		 *dupkey = GC_MALLOC(5),
+		 *otherkey = GC_MALLOC(3);
+	int  *val1 = GC_MALLOC(sizeof *val1),
+	     *val2 = GC_MALLOC(sizeof *val2),
+	     *val3 = GC_MALLOC(sizeof *val3);
 	strcpy(key, "life");
 	strcpy(dupkey, "life");
 	*val1 = 42;
@@ -115,5 +118,6 @@ int main(void)
 
 	tm_free(t2);
 
+	GC_gcollect();
 	return 0;
 }
