@@ -14,7 +14,6 @@ Why you might avoid it
 
 * containers use void pointers, e.g. no vector of ints
 * pedestrian algorithms, not cutting edge
-* hard-coded to use malloc/free/realloc
 * not (yet) thread safe
 
 ### Installation
@@ -87,11 +86,11 @@ that applications are built against.
 
 ### Contributing to Libderp
 
-To build in `build/dev` with warnings, profiling, debugging information, and
-code coverage data, use the "dev" variant:
+To build in `build/dev` with warnings, leak checks, and code coverage data, use
+the "dev" variant:
 
 ```sh
-# requires clang specifically
+# requires clang and Boehm GC
 make VARIANT=dev
 ```
 
@@ -108,12 +107,9 @@ make VARIANT=dev tests
 ./build/dev/test/run
 ```
 
-On platforms where Clang supports memory leak checks, you can activate them
-like this:
-
-```sh
-ASAN_OPTIONS=detect_leaks=1 ./build/dev/test/run
-```
+The dev variant uses the Boehm garbage collector [for leak
+detection](https://www.hboehm.info/gc/leak.html), because Boehm is available on
+more platforms than the Clang address sanitizer is.
 
 To see test coverage for a data structure, run the cov script:
 
@@ -121,7 +117,9 @@ To see test coverage for a data structure, run the cov script:
 ./build/dev/test/cov hashmap
 ```
 
-### Cross compiling
+### Customizing the build
+
+#### Cross compiling
 
 The macros `CC`, `AR` and `EXTRA_CFLAGS` can be used to cross-compile for other
 architectures. For instance, here is how to compile a static library for ARM
@@ -136,3 +134,13 @@ make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar \
 Note that the library uses the dynamic memory allocation functions malloc,
 free, and realloc, as well as the functions memmove and memset. Thus it needs a
 C standard library implementation (like newlib) to function.
+
+#### Enabling the garbage collector for release
+
+By default, the release build variant uses memory allocation from the C
+standard library. However, if you want to use libderp in applications with the
+Boehm garbage collector, just build like this:
+
+```sh
+make EXTRA_CFLAGS="-DDERP_USE_BOEHM_GC"
+```

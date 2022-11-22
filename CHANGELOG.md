@@ -1,5 +1,11 @@
 # Libderp changelog
 
+## Unreleased
+
+### Added
+
+* Boehm GC support (enable with -DDERP_USE_BOEHM_GC)
+
 ## 1.0.0
 
 ### Added
