@@ -1,9 +1,12 @@
 #include <assert.h>
-
-#include <gc/gc.h>
+#include <stdlib.h>
 
 #include "derp/common.h"
 #include "derp/list.h"
+
+#ifdef HAVE_BOEHM_GC
+#include <gc/leak_detector.h>
+#endif
 
 #define ARRAY_LEN(a) (sizeof(a)/sizeof(*a))
 
@@ -17,7 +20,10 @@ int ivals[] = {0,1,2,3,4,5,6,7,8,9};
 
 int main(void)
 {
+#ifdef HAVE_BOEHM_GC
 	GC_set_find_leak(1);
+	derp_use_alloc_funcs(GC_malloc, GC_realloc, GC_free);
+#endif
 
 	list *l = l_new();
 
@@ -93,12 +99,14 @@ int main(void)
 
 	l_clear(l);
 	l_dtor(l, derp_free, NULL);
-	int *life = GC_MALLOC(sizeof *life);
+	int *life = malloc(sizeof *life);
 	*life = 42;
 	l_append(l, life);
 
 	l_free(l);
 
-	GC_gcollect();
+#ifdef HAVE_BOEHM_GC
+	CHECK_LEAKS();
+#endif
 	return 0;
 }

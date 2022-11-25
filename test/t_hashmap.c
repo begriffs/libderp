@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <gc/gc.h>
-
 #include "derp/common.h"
 #include "derp/hashmap.h"
+
+#ifdef HAVE_BOEHM_GC
+#include <gc/leak_detector.h>
+#endif
 
 int ivals[] = {0,1,2,3,4,5,6,7,8,9};
 
@@ -23,7 +25,10 @@ unsigned long djb2hash(const void *x)
 
 int main(void)
 {
+#ifdef HAVE_BOEHM_GC
 	GC_set_find_leak(1);
+	derp_use_alloc_funcs(GC_malloc, GC_realloc, GC_free);
+#endif
 
 	hashmap *h = hm_new(0, djb2hash, derp_strcmp, NULL);
 	hm_iter *i;
@@ -69,9 +74,9 @@ int main(void)
 
 	/* test for memory leak */
 	hm_dtor(h, derp_free, derp_free, NULL);
-	char *key = GC_MALLOC(5);
-	int  *val1 = GC_MALLOC(sizeof *val1),
-	     *val2 = GC_MALLOC(sizeof *val2);
+	char *key = malloc(5);
+	int  *val1 = malloc(sizeof *val1),
+	     *val2 = malloc(sizeof *val2);
 	strcpy(key, "life");
 	*val1 = 42;
 	*val2 = 13;
@@ -92,6 +97,8 @@ int main(void)
 	hm_iter_free(i);
 	hm_free(h1);
 
-	GC_gcollect();
+#ifdef HAVE_BOEHM_GC
+	CHECK_LEAKS();
+#endif
 	return 0;
 }

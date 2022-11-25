@@ -1,4 +1,5 @@
 CC = clang
 CFLAGS  += -std=c99 -pedantic -Wall -Wextra -Werror -O0 \
-           -DDERP_USE_BOEHM_GC --coverage
+           $(EXTRA_DEV_CFLAGS) --coverage
+LDFLAGS += $(EXTRA_DEV_LDFLAGS)
 LDLIBS  += -lgc

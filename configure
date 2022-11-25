@@ -25,17 +25,17 @@ else
 	EOF
 fi
 
-printf "Detecting Boehm GC for dev variant... "
+printf "Detecting Boehm GC for leak tests... "
 GCLIB=`find /usr/local /opt -name 'libgc.*' -exec dirname {} \; 2>/dev/null | head -n 1`
 GCINC=`find /usr/local /opt -name 'gc.h' -exec dirname {} \; 2>/dev/null | head -n 1`
 
 if [ -z "$GCLIB" -o -z "$GCINC" ]; then
 	echo "not found\n"
-	echo "OK to compile release variant, but not dev variant"
+	echo "Will not do memory leak checks in test suite"
 else
 	echo "$GCLIB"
 	cat >> config.mk <<-EOF
-	CFLAGS  += -I$GCINC/..
-	LDFLAGS += -L$GCLIB
+	EXTRA_DEV_CFLAGS  += -DHAVE_BOEHM_GC -I$GCINC/..
+	EXTRA_DEV_LDFLAGS += -L$GCLIB
 	EOF
 fi

@@ -90,7 +90,7 @@ To build in `build/dev` with warnings, leak checks, and code coverage data, use
 the "dev" variant:
 
 ```sh
-# requires clang and Boehm GC
+# requires clang
 make VARIANT=dev
 ```
 
@@ -107,9 +107,9 @@ make VARIANT=dev tests
 ./build/dev/test/run
 ```
 
-The dev variant uses the Boehm garbage collector [for leak
-detection](https://www.hboehm.info/gc/leak.html), because Boehm is available on
-more platforms than the Clang address sanitizer is.
+The dev variant uses the Boehm garbage collector, if available, [for leak
+detection](https://www.hboehm.info/gc/leak.html). Boehm is available on more
+platforms than the Clang address sanitizer is.
 
 To see test coverage for a data structure, run the cov script:
 
@@ -135,12 +135,13 @@ Note that the library uses the dynamic memory allocation functions malloc,
 free, and realloc, as well as the functions memmove and memset. Thus it needs a
 C standard library implementation (like newlib) to function.
 
-#### Enabling the garbage collector for release
+#### Using a different memory allocator
 
-By default, the release build variant uses memory allocation from the C
-standard library. However, if you want to use libderp in applications with the
-Boehm garbage collector, just build like this:
+By default, libderp uses memory allocation from the C standard library.
+However, if you want it to use a different set of functions, specify them with
+a call to `derp_use_alloc_funcs()` prior to any other libderp API calls:
 
-```sh
-make EXTRA_CFLAGS="-DDERP_USE_BOEHM_GC"
+```c
+/* for instance, for Boehm GC compatibility: */
+derp_use_alloc_funcs(GC_malloc, GC_realloc, GC_free);
 ```
