@@ -6,7 +6,14 @@
 #include "derp/treemap.h"
 
 #ifdef HAVE_BOEHM_GC
-#include <gc/leak_detector.h>
+#include <gc/gc.h>
+
+#undef malloc
+#define malloc(x) GC_malloc(x)
+#undef realloc
+#define realloc(x,y) GC_realloc(x,y)
+#undef free
+#define free(x) GC_free(x)
 #endif
 
 int ivals[] = {0,1,2,3,4,5,6,7,8,9};
@@ -125,7 +132,7 @@ int main(void)
 	tm_free(t2);
 
 #ifdef HAVE_BOEHM_GC
-	CHECK_LEAKS();
+	GC_gcollect();
 #endif
 	return 0;
 }

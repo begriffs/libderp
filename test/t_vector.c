@@ -6,7 +6,14 @@
 #include "derp/vector.h"
 
 #ifdef HAVE_BOEHM_GC
-#include <gc/leak_detector.h>
+#include <gc/gc.h>
+
+#undef malloc
+#define malloc(x) GC_malloc(x)
+#undef realloc
+#define realloc(x,y) GC_realloc(x,y)
+#undef free
+#define free(x) GC_free(x)
 #endif
 
 #define ARRAY_LEN(a) (sizeof(a)/sizeof(*a))
@@ -112,7 +119,7 @@ int main(void)
 	v_free(vint);
 
 #ifdef HAVE_BOEHM_GC
-	CHECK_LEAKS();
+	GC_gcollect();
 #endif
 	return 0;
 }
