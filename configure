@@ -26,8 +26,8 @@ else
 fi
 
 printf "Detecting Boehm GC for leak tests... "
-GCLIB=`find /usr/local /opt -name 'libgc.*' -exec dirname {} \; 2>/dev/null | head -n 1`
-GCINC=`find /usr/local /opt -name 'gc.h' -exec dirname {} \; 2>/dev/null | head -n 1`
+GCLIB=`find /opt /usr/local -name 'libgc.*' -exec dirname {} \; 2>/dev/null | head -n 1`
+GCINC=`find /opt /usr/local -name 'leak_detector.h' -exec dirname {} \; 2>/dev/null | head -n 1`
 
 if [ -z "$GCLIB" -o -z "$GCINC" ]; then
 	echo "not found\n"
